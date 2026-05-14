@@ -1,0 +1,66 @@
+name: Deploy Cravee Admin to EC2 (Production)
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 📦 Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/cravee-admin:latest
+          build-args: |
+            NUXT_PUBLIC_API_URL=https://app.cravee.my
+            APP_NAME=Cravee Admin
+            NUXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.CRAVEE_GOOGLE_AUTH_CLIENT_ID }}
+
+      - name: SSH into EC2 and Deploy App
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST_PRODUCTION }}           # EC2 host address
+          username: ubuntu       # EC2 username (e.g., ubuntu)
+          key: ${{ secrets.EC2_SSH_KEY_PRODUCTION }}      
+          script: |
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Pull the latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/cravee-admin:latest
+            # Tag the pulled image without username
+            docker tag ${{ secrets.DOCKER_USERNAME }}/cravee-admin:latest cravee-admin:latest
+            
+            # Remove all dangling images
+            docker image prune -f
+
+            # Stop and remove existing containers if they exist
+            docker stop cravee-admin || true
+            docker rm cravee-admin || true
+
+            # Start the new container
+            docker run -d --restart always \
+              --name cravee-admin \
+              -p 3000:3000 \
+              -e NUXT_PUBLIC_API_URL=https://app.cravee.my \
+              -e APP_NAME="Cravee Admin" \
+              -e NUXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.CRAVEE_GOOGLE_AUTH_CLIENT_ID }} \
+              cravee-admin:latest
