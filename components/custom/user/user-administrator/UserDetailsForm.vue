@@ -143,10 +143,16 @@ watch(accountType, async (newAccountType) => {
         }
     }
     else if(newAccountType === 'Business'){
+        if(user.value.business_id){
+            await fetchRoleOptions(user.value.business_id)
+        } else {
+            await fetchRoleOptions()
+        }
     }
     else{
         user.value.business_id = ''
         user.value.outlet_id = ''
+        await fetchRoleOptions()
     }
 
     if (!isSantéAdmin()) {
