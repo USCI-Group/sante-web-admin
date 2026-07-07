@@ -221,9 +221,25 @@ const handleCancel = () => {
               </div>
           </div>
 
-          <div class="flex items-center space-x-2">
-            <Switch id="is_school_outlet" :checked="outlet.is_school_outlet" @update:checked="(val) => outlet.is_school_outlet = val" />
-            <Label for="is_school_outlet">Is School Outlet (UIS)</Label>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center space-x-2">
+              <Switch id="is_school_outlet" :checked="outlet.is_school_outlet" @update:checked="(val) => outlet.is_school_outlet = val" />
+              <Label for="is_school_outlet">Is School Outlet (UIS)</Label>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <Label for="outlet_status">Status:</Label>
+              <Select v-model="outlet.outlet_status">
+                  <SelectTrigger class="w-[180px]">
+                      <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="on-hold">On Hold</SelectItem>
+                  </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <hr>
