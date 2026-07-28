@@ -1,4 +1,5 @@
 //import type { Ingredient } from './ingredient'
+import type { Tax } from './tax'
 
 // Define the type for the menu title
 export interface Menu {
@@ -29,11 +30,13 @@ export interface Menu {
 export interface Product {
     id: string
     business_id: string
+    sku?: string
     name: string
     description: string
     cost: number
     base_price?: number
     price: number
+    kcal?: number
     image_url?: string
     is_store_outlet: boolean
     is_grab_food: boolean
@@ -57,6 +60,7 @@ export interface Product {
     ingredients: Ingredient[]
     experience_points?: number
     modifier_options_id?: string
+    taxes?: Tax[]
     meta: Meta
 }
 
@@ -69,6 +73,7 @@ export interface ShopeeFoodInfo {
 
 export interface ModifierGroup {
   id?: string
+  external_id?: string
   name: string
   input_type: string
   business_id: string
@@ -80,6 +85,7 @@ export interface ModifierGroup {
 
 export interface ModifierGroupOption {
   id?: string
+  external_id?: string
   name: string
   price_adjustment: number
   sort_order: number
@@ -106,6 +112,7 @@ export interface CustomizationGroupOption {
 
 export interface ProductCategory {
     id: string;
+    external_id?: string;
     name: string;
     description: string;
     business_id: string;

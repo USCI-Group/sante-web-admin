@@ -34,6 +34,7 @@ const { createModifierGroup } = useMenu()
 
 const formData = reactive({
     ModifierGroupName: '',
+    ModifierGroupExternalId: '',
     is_multiple_choice: false,
     options: [] as ModifierGroupOption[],
 })
@@ -42,6 +43,7 @@ onMounted(() => {
     getMe()
     formData.options.push({
         id: '',
+        external_id: '',
         name: '',
         price_adjustment: 0,
         sort_order: 0,
@@ -55,11 +57,13 @@ const handleAddModifierGroup = async () => {
             id: undefined,
             business_id: me.value?.business_id || '',
             name: formData.ModifierGroupName,
+            external_id: formData.ModifierGroupExternalId.trim() || undefined,
             input_type: formData.is_multiple_choice ? 'checkbox' : 'radio',
             created_at: undefined,
             updated_at: undefined,
             modifier_options: formData.options.map(option => ({
                 id: undefined,
+                external_id: option.external_id?.trim() || undefined,
                 name: option.name,
                 price_adjustment: option.price_adjustment,
                 sort_order: option.sort_order,
@@ -91,6 +95,7 @@ const handleCancel = () => {
 const handleAddVariant = () => {
     formData.options.push({
         id: '',
+        external_id: '',
         name: '',
         price_adjustment: 0,
         sort_order: 0,
@@ -158,6 +163,15 @@ const handleChangeIsMultipleChoice = () => {
                     </div>
                     <Input class="w-[60%] h-full" placeholder="Enter a Modifier Group Name" v-model="formData.ModifierGroupName" />
                 </div>
+                <!-- modifier group external id -->
+                <div class="w-full h-[38px] flex flex-row items-center justify-start">
+                    <div class="w-[40%] h-[100%] pr-[24px] flex items-start justify-start">
+                        <span class="text-gray-600 text-sm font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                            Modifier Group External ID <span class="text-xs text-gray-400 font-normal ml-1">(Optional)</span>
+                        </span>
+                    </div>
+                    <Input class="w-[60%] h-full" placeholder="e.g. MOD01" v-model="formData.ModifierGroupExternalId" />
+                </div>
                 <!--is multiple choice -->
                 <div class="w-full h-[38px] flex flex-row items-center justify-start">
                     <div class="w-[40%] h-[100%] pr-[24px] flex items-start justify-start">
@@ -183,6 +197,15 @@ const handleChangeIsMultipleChoice = () => {
                             </span>
                         </div>
                         <Input class="w-[60%] h-full" placeholder="Enter a option name" v-model="option.name" />
+                    </div>
+                    <!-- option external id -->
+                    <div class="w-full h-[38px] flex flex-row items-center justify-start">
+                        <div class="w-[40%] h-[100%] pr-[24px] flex items-start justify-start">
+                            <span class="text-gray-600 text-sm font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                                Option External ID <span class="text-xs text-gray-400 font-normal ml-1">(Optional)</span>
+                            </span>
+                        </div>
+                        <Input class="w-[60%] h-full" placeholder="e.g. OPT01" v-model="option.external_id" />
                     </div>
                     <!-- option price adjustment -->
                     <div class="w-full h-[38px] flex flex-row items-center justify-start">

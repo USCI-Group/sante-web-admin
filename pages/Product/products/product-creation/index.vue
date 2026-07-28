@@ -6,7 +6,9 @@ import { Icon } from '@iconify/vue'
 import { Input } from '@/components/ui/input'
 import { useMenu } from '@/composables/useMenu'
 import TagsCombobox from '~/components/custom/tags/TagsCombobox.vue'
+import TaxCombobox from '~/components/custom/tags/TaxCombobox.vue'
 import type { ProductCategory, ProductSubCategory, Product, CustomizationGroup, ModifierGroup, GrabFoodInfo, ShopeeFoodInfo } from '@/types/menu'
+import type { Tax } from '@/types/tax'
 import { useToast } from '~/components/ui/toast/use-toast'
 import { Label } from '@/components/ui/label'
 import {
@@ -61,13 +63,16 @@ const assignIngredientsDialog = ref(false)
 // core place to store the data of the form 
 const formDataMapping = reactive({
     'Product Name': '',
+    'Product SKU': '',
     'Product Description': '',
     'Product Cost': 0,
     // 'Product Base Price': 0,
     'Product Selling Price': 0,
+    'Product Kcal': 0,
     'Sort Order': 0,
     'Product Category': [] as ProductCategory[],
     'Product Subcategory': [] as ProductSubCategory[],
+    'Product Taxes': [] as Tax[],
     'Grabfood Info': {} as GrabFoodInfo,
     'Shopeefood Info': {} as ShopeeFoodInfo,
     'Display in Store Outlet': true,
@@ -132,11 +137,13 @@ const submitForm = async() => {
     const product : Product = {
         id: productStore.product?.id || '',
         business_id: me.value?.business_id|| '',
+        sku: formDataMapping['Product SKU']?.trim() || undefined,
         name: formDataMapping['Product Name']?.trim() || '',
         description: formDataMapping['Product Description']?.trim() || '',
         cost: Number(formDataMapping['Product Cost']) || 0,
         // base_price: Number(formDataMapping['Product Base Price']) || 0,
         price: Number(formDataMapping['Product Selling Price']) || 0,
+        kcal: Number(formDataMapping['Product Kcal']) || 0,
         sort_order: Number(formDataMapping['Sort Order']) || 0,
         product_category: formDataMapping['Product Category'] || [],
         product_sub_category: formDataMapping['Product Subcategory'] || [],
@@ -146,6 +153,7 @@ const submitForm = async() => {
         grab_food_info: formDataMapping['Grabfood Info'] || undefined,
         shopee_food_info: formDataMapping['Shopeefood Info'] || undefined,
         modifier_groups: formDataMapping['Product Modifier'] || [],
+        taxes: formDataMapping['Product Taxes'] || [],
         ingredients: formDataMapping['Product Ingredients'] || [],
         created_at: productStore.product?.created_at || '',
         image_url: '',
@@ -284,6 +292,15 @@ const handleChangeBoolean = (key: keyof typeof formDataMapping) => {
                                 </div>
 
                                 <div class="flex flex-col justify-center items-start">
+                                    <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product SKU <span class="text-xs text-gray-400 font-normal ml-1">(Optional, for POS Sync)</span></p>
+                                    <Input 
+                                        class="w-full" 
+                                        placeholder="e.g. 2101"
+                                        v-model="formDataMapping['Product SKU']" 
+                                    />
+                                </div>
+
+                                <div class="flex flex-col justify-center items-start">
                                     <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product Description <span class="text-red-500">*</span></p>
                                     <Input 
                                         class="w-full" 
@@ -305,6 +322,15 @@ const handleChangeBoolean = (key: keyof typeof formDataMapping) => {
                                     <Input 
                                         class="w-full" 
                                         v-model="formDataMapping['Product Selling Price']" 
+                                        type="number"
+                                    />
+                                </div>
+
+                                <div class="flex flex-col justify-center items-start">
+                                    <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Kcal</p>
+                                    <Input 
+                                        class="w-full" 
+                                        v-model="formDataMapping['Product Kcal']" 
                                         type="number"
                                     />
                                 </div>
@@ -341,6 +367,15 @@ const handleChangeBoolean = (key: keyof typeof formDataMapping) => {
                                         type="subcategory"
                                         :isFullWidth="true"
                                         :widthDropdownMenu="'w-[500px]'"
+                                    />
+                                </div>
+
+                                <div class="flex flex-col justify-center items-start">
+                                    <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product Taxes</p>
+                                    <TaxCombobox 
+                                        v-model="formDataMapping['Product Taxes']"
+                                        placeholder="Select taxes"
+                                        :isFullWidth="true"
                                     />
                                 </div>
 
@@ -464,20 +499,6 @@ const handleChangeBoolean = (key: keyof typeof formDataMapping) => {
                                         />
                                     </div>
                                 </div>
-                                <!-- <div class="p-2.5 w-full h-full flex-col justify-start items-center space-y-2.5 rounded-lg border border-[#E9EAEB]">
-                                    <div class="flex justify-between items-center w-full cursor-pointer" @click="deleteModifier(modifier.id as string)">
-                                        <p class="text-[#181D27] text-xs font-medium leading-none">{{ modifier.name }}</p>
-                                        <Icon icon="heroicons:trash" class="w-4 h-4 text-gray-500" />
-                                    </div>
-                                    <li 
-                                        v-for="(option, index) in modifier.modifier_options"
-                                        :key="index"
-                                        class="w-full text-[#181D27] text-xs font-normal leading-none pl-2"
-                                    >
-                                        {{ option.name }}
-                                    </li>
-
-                                </div> -->
                             </div>
 
                             <!-- add modifier -->

@@ -133,6 +133,13 @@ export const useCommunication = () => {
         }
     }
 
+    // Rewrites any image URL that still points to localhost:4000 (old uploads
+    // before BASE_URL was configured) to the current API base URL.
+    const rewriteImageUrl = (url: string | null | undefined): string => {
+        if (!url) return ''
+        return url.replace(/^http:\/\/localhost:4000/, baseUrl)
+    }
+
     const queryAnnouncementWithFilters = async (body: {
         business_id: string,
         search?: string,
@@ -148,7 +155,10 @@ export const useCommunication = () => {
                 body: body
             })
 
-            return announcement_list
+            return announcement_list.map(a => ({
+                ...a,
+                image_url: rewriteImageUrl(a.image_url)
+            }))
         } catch (error) {
             throw error
         }

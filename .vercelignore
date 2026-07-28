@@ -1,0 +1,7 @@
+node_modules
+.output
+.nuxt
+*.tar
+*.zip
+scratch
+.env.local

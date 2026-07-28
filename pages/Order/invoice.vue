@@ -168,7 +168,7 @@ const submitInvoice = async () => {
       <div class="relative z-20">
         <div class="flex flex-col items-center pt-8 pb-4">
           <img
-            src="/images/logo.png"
+            src="/images/sante_logo.png"
             alt="Logo"
             class="h-14 drop-shadow-2xl mx-auto mb-2 transition-transform duration-300 hover:scale-110"
           />

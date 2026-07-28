@@ -104,7 +104,7 @@ async function signInUser() {
       >
         <div class="flex flex-col justify-center items-center my-10">
           <NuxtImg
-            src="/images/logo.png"
+            src="/images/sante_logo.png"
             alt="Santé Logo"
             sizes="144px"
             densities="x1"

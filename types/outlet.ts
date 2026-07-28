@@ -4,6 +4,7 @@ import type { User } from '@/types/user'
 export interface Outlet {
   id?: string
   business_id: string
+  external_id?: string
   name: string
   email: string
   phone: string

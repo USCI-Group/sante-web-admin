@@ -331,7 +331,12 @@ const deleteAnnouncementFunction = async (data: any) => {
                     :src="element.image_url"
                     alt="Onboarding Example"
                     class="w-full h-full object-cover"
+                    @error="(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; }"
                   />
+                  <div v-if="!element.image_url" class="flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <Icon icon="heroicons:photo" class="w-12 h-12" />
+                    <p class="text-sm">No image</p>
+                  </div>
                   <ImageDialog
                     :imageUrl="element.image_url || ''"
                     :isOpen="openImageDialog"

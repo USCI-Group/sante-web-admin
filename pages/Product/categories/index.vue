@@ -135,6 +135,10 @@ const columns: ColumnDef<ProductCategory, any>[] = [
         accessorKey: 'name',
     },
     {
+        header: 'External ID (POS)',
+        accessorKey: 'external_id',
+    },
+    {
         header: 'Description',
         accessorKey: 'description',
     },

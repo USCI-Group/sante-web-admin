@@ -6,7 +6,9 @@ import { Icon } from '@iconify/vue'
 import { Input } from '@/components/ui/input'
 import { useMenu } from '@/composables/useMenu'
 import TagsCombobox from '~/components/custom/tags/TagsCombobox.vue'
+import TaxCombobox from '~/components/custom/tags/TaxCombobox.vue'
 import type { ProductCategory, ProductSubCategory, Product, CustomizationGroup, ModifierGroupOption } from '@/types/menu'
+import type { Tax } from '@/types/tax'
 import { useToast } from '~/components/ui/toast/use-toast'
 import { Label } from '@/components/ui/label'
 import Tooltip from '~/components/custom/Tooltip.vue'
@@ -56,6 +58,7 @@ const formDataMapping = reactive({
     'Product Ingredients': productStore.product?.ingredients || [],
     'Product ImageURL': productStore.product?.image_url || '',
     'Product Images': [] as File[],
+    'Product Taxes': productStore.product?.taxes || [] as Tax[],
     'Modifier ID': productStore.product?.modifier_options_id || undefined,
 })
 
@@ -107,11 +110,13 @@ const submitForm = async() => {
     const product : Product = {
         id: productStore.product?.id || '',
         business_id: myProfile.business_id || '',
+        sku: productStore.product?.sku || undefined,
         name: productStore.product?.name?.trim() || '',
         description: productStore.product?.description?.trim() || '',
         cost: Number(productStore.product?.cost) || 0,
         base_price: Number(productStore.product?.price) || 0,
         price: Number(productStore.product?.price) || 0,
+        kcal: Number(productStore.product?.kcal) || 0,
         sort_order: Number(productStore.product?.sort_order) || 0,
         product_category: productStore.product?.product_category || [],
         product_sub_category: productStore.product?.product_sub_category || [],
@@ -122,6 +127,7 @@ const submitForm = async() => {
         grab_food_info: productStore.product?.grab_food_info || undefined,
         shopee_food_info: productStore.product?.shopee_food_info || undefined,
         modifier_groups: formDataMapping['Product Modifier'] || [],
+        taxes: formDataMapping['Product Taxes'] || [],
         modifier_options_id: formDataMapping['Modifier ID'] ? formDataMapping['Modifier ID'] : undefined,
         ingredients: formDataMapping['Product Ingredients'].map((ingredient) => {
             return {
@@ -323,6 +329,16 @@ const handleCancel = () => {
                             </div>
 
                             <div class="flex flex-col justify-center items-start">
+                                <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product SKU <span class="text-xs text-gray-400 font-normal ml-1">(Optional, for POS Sync)</span></p>
+                                <Input 
+                                    class="w-full" 
+                                    placeholder="e.g. 2101"
+                                    v-if="productStore.product !== null"
+                                    v-model="productStore.product.sku" 
+                                />
+                            </div>
+
+                            <div class="flex flex-col justify-center items-start">
                                 <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product Description <span class="text-red-500">*</span></p>
                                 <Input 
                                     class="w-full" 
@@ -347,6 +363,16 @@ const handleCancel = () => {
                                     class="w-full" 
                                     v-if="productStore.product !== null"
                                     v-model="productStore.product.price" 
+                                    type="number"
+                                />
+                            </div>
+
+                            <div class="flex flex-col justify-center items-start">
+                                <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Kcal</p>
+                                <Input 
+                                    class="w-full" 
+                                    v-if="productStore.product !== null"
+                                    v-model="productStore.product.kcal" 
                                     type="number"
                                 />
                             </div>
@@ -386,6 +412,16 @@ const handleCancel = () => {
                                     type='subcategory'
                                     :isFullWidth="true"
                                     :widthDropdownMenu="'w-[500px]'"
+                                />
+                            </div>
+
+                            <div class="flex flex-col justify-center items-start">
+                                <p class="justify-start text-gray-600 text-sm font-medium leading-tight">Product Taxes</p>
+                                <TaxCombobox 
+                                    v-if="productStore.product !== null"
+                                    v-model="formDataMapping['Product Taxes']"
+                                    placeholder="Select taxes"
+                                    :isFullWidth="true"
                                 />
                             </div>
 

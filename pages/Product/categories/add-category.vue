@@ -33,6 +33,7 @@ const dialogOpen = computed({
 
 const formData = reactive({
     name: '',
+    external_id: '',
     description: '',
     business_id: '',
 })
@@ -75,6 +76,7 @@ const submitForm = async() => {
     const category : ProductCategory = {
         id: '',
         business_id: formData.business_id,
+        external_id: formData.external_id.trim() || undefined,
         name: formData.name.trim(),
         description: formData.description.trim(),
         created_at: '',
@@ -141,6 +143,10 @@ const triggerUploadCategoryImage = async (categoryID: string) => {
                 <div>
                     <Label>Product Category Name <span class="text-red-500">*</span></Label>
                     <Input v-model="formData.name" class="w-full" />
+                </div>
+                <div>
+                    <Label>External ID <span class="text-xs text-gray-400 font-normal ml-1">(Optional, for POS Sync)</span></Label>
+                    <Input v-model="formData.external_id" class="w-full" placeholder="e.g. DEPT01" />
                 </div>
                 <div>
                     <Label>Product Category Description</Label>
