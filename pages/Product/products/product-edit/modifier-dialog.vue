@@ -95,34 +95,18 @@ const dialogOpen = computed({
 })
 
 const toggleModifier = (modifier: ModifierGroup) => {
-    console.log("Toggling modifier:", modifier)
-    console.log("Selected modifiers:", selectedModifiers.value)
-    const isSelected = selectedModifiers.value.some(m => m.id === modifier.id)
-    if (isSelected) {
+    const isCurrentlySelected = selectedModifiers.value.some(m => m.id === modifier.id)
+    if (isCurrentlySelected) {
         selectedModifiers.value = selectedModifiers.value.filter(m => m.id !== modifier.id)
     } else {
-        const modCopy = { ...modifier, max_selection: modifier.max_selection || 1 }
+        const modCopy = JSON.parse(JSON.stringify(modifier))
+        modCopy.max_selection = modCopy.max_selection || 1
         selectedModifiers.value.push(modCopy)
     }
-    console.log("Selected modifiers after update:", selectedModifiers.value)
 }
 
-const isModifierSelected = (modifierId: string) => {
-    return computed({
-        get: () => selectedModifiers.value.some(m => m.id === modifierId),
-        set: (value: boolean) => {
-            const modifier = modifierList.value.find(m => m.id === modifierId)
-            if (modifier) {
-                if (value && !selectedModifiers.value.some(m => m.id === modifierId)) {
-                    const modCopy = { ...modifier, max_selection: modifier.max_selection || 1 }
-                    selectedModifiers.value.push(modCopy)
-                } else if (!value) {
-                    selectedModifiers.value = selectedModifiers.value.filter(m => m.id !== modifierId)
-                }
-                console.log("Selected modifiers after update:", selectedModifiers.value)
-            }
-        }
-    })
+const isModifierSelected = (modifierId: string): boolean => {
+    return selectedModifiers.value.some(m => m.id === modifierId)
 }
 
 const saveModifiers = () => {
@@ -206,30 +190,32 @@ const saveModifiers = () => {
             <br>
 
             <div class="w-full grid grid-cols-3 gap-2.5">
-                <div v-for="modifier in modifierList" :key="modifier.id" class="p-[5px] w-full h-full rounded-lg flex flex-row items-center justify-start border border-[#E9EAEB]" :class="{'bg-[#FDF5EF]': isModifierSelected(modifier.id as string).value}">
+                <div 
+                    v-for="modifier in modifierList" 
+                    :key="modifier.id" 
+                    @click="toggleModifier(modifier)"
+                    class="p-2.5 w-full h-full rounded-lg flex flex-row items-center justify-start border border-[#E9EAEB] cursor-pointer hover:border-[#00A859] transition-colors" 
+                    :class="{'bg-[#FDF5EF] border-[#00A859]': isModifierSelected(modifier.id as string)}"
+                >
                     <!-- checkbox -->
-                    <div class="w-1/6 h-full rounded-lg flex justify-center items-start">
+                    <div class="w-1/6 h-full rounded-lg flex justify-center items-center pointer-events-none">
                         <input 
                             type="checkbox" 
                             :id="modifier.id" 
-                            :checked="isModifierSelected(modifier.id as string).value"
-                            @change="toggleModifier(modifier)"
-                            class="h-4 w-4 rounded-sm border border-[#D5D7DA] text-[#00A859] focus:ring-[#00A859] "
+                            :checked="isModifierSelected(modifier.id as string)"
+                            class="h-4 w-4 rounded-sm border border-[#D5D7DA] text-[#00A859] focus:ring-[#00A859]"
                         />
                     </div>
                     <!-- modifier group with options -->
                     <div class="w-5/6 h-full rounded-lg">
                         <!-- modifier group name -->
-                        <p class="text-center text-xs font-medium leading-none text-[#00A859]">{{ modifier.name }}</p>
+                        <p class="text-left text-xs font-medium leading-none text-[#00A859] mb-1">{{ modifier.name }}</p>
                         <!-- modifier group options -->
                         <div v-for="option in modifier.modifier_options" :key="option.id">
-                            <p class="text-xs font-normal leading-none text-[#A4A7AE]">{{ option.name }}</p>
+                            <p class="text-xs font-normal leading-none text-[#A4A7AE] mt-0.5">{{ option.name }}</p>
                         </div>
-
                     </div>
                 </div>
-
-
             </div>
 
             <div class="flex justify-end items-center space-x-2.5 mt-5">
