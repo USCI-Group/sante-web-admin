@@ -109,7 +109,7 @@ const submitForm = async() => {
     // convert formData to Product type
     const product : Product = {
         id: productStore.product?.id || '',
-        business_id: myProfile.business_id || '',
+        business_id: productStore.product?.business_id || myProfile.business_id || '',
         sku: productStore.product?.sku || undefined,
         name: productStore.product?.name?.trim() || '',
         description: productStore.product?.description?.trim() || '',

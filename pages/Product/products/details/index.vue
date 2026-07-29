@@ -220,6 +220,20 @@ onMounted(async () => {
                             </p>
                         </div>
                     </div>
+                    <!-- product kcal -->
+                    <div class="w-full h-full bg-white grid grid-cols-[1fr_2fr] border border-[#E5E5E5] rounded-md">
+                        <!-- icon -->
+                        <div class="w-full h-full flex justify-center items-center">
+                            <Icon icon="heroicons:fire" class="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4405]" />
+                        </div>
+                        <!-- product kcal -->
+                        <div class="w-full h-full flex flex-col justify-center items-start">
+                            <p class="text-sm sm:text-base text-gray-500">Kcal</p>
+                            <p class="text-sm sm:text-base text-gray-500">
+                                {{ productStore.product?.kcal ?? '0' }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- TODO : product related items -->
