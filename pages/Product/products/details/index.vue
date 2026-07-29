@@ -16,10 +16,14 @@ import type { Product } from '@/types/menu'
 import { useProductStore } from '@/stores/ProductStore'
 import { useDateFormat } from '@vueuse/core'
 import type { Ingredient } from '@/types/ingredient'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useUsers } from '~/composables/useUsers'
 
 const router = useRouter()
+const route = useRoute()
 const { myProfile, checkPermission } = useMyProfileStore()
+const { getMe } = useUsers()
+const { getAllMenuProducts } = useMenu()
 
 const productStore = useProductStore()
 const { toast } = useToast()
@@ -84,6 +88,24 @@ const ingredients = ref<Ingredient[]>([
 ])
 
 onMounted(async () => {
+    await getMe()
+    const productId = route.query.id as string
+    if (productId && (!productStore.product || productStore.product.id !== productId)) {
+        try {
+            const res: any = await getAllMenuProducts({
+                business_id: myProfile.business_id || '',
+                page: 1,
+                page_size: 100
+            })
+            const products = res.data?.products || res.products || res.data || []
+            const found = products.find((p: any) => p.id === productId)
+            if (found) {
+                productStore.setCurrentProduct(found)
+            }
+        } catch (err) {
+            console.error("Failed to load product by ID:", err)
+        }
+    }
 })
 
 </script>
