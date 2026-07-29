@@ -36,6 +36,7 @@ const { getModifierList } = useMenu()
 // Define props with modelValue for v-model support
 const props = defineProps<{
   modelValue: boolean
+  selectedModifiers?: ModifierGroup[]
 }>()
 
 const imageFile = ref<File | null>(null)
@@ -44,10 +45,31 @@ const imageFile = ref<File | null>(null)
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'selectedModifiers', modifiers: ModifierGroup[]): void
+  (e: 'selected-modifiers', modifiers: ModifierGroup[]): void
 }>()
 
 const modifierList = ref<ModifierGroup[]>([])
 const selectedModifiers = ref<ModifierGroup[]>([])
+
+const syncSelectedModifiers = () => {
+    if (props.selectedModifiers && Array.isArray(props.selectedModifiers)) {
+        selectedModifiers.value = JSON.parse(JSON.stringify(props.selectedModifiers))
+    } else {
+        selectedModifiers.value = []
+    }
+}
+
+watch(() => props.modelValue, (isOpen) => {
+    if (isOpen) {
+        syncSelectedModifiers()
+    }
+}, { immediate: true })
+
+watch(() => props.selectedModifiers, () => {
+    if (props.modelValue) {
+        syncSelectedModifiers()
+    }
+}, { deep: true })
 
 onMounted(async () => {
     await getMe()
@@ -79,7 +101,8 @@ const toggleModifier = (modifier: ModifierGroup) => {
     if (isSelected) {
         selectedModifiers.value = selectedModifiers.value.filter(m => m.id !== modifier.id)
     } else {
-        selectedModifiers.value.push(modifier)
+        const modCopy = { ...modifier, max_selection: modifier.max_selection || 1 }
+        selectedModifiers.value.push(modCopy)
     }
     console.log("Selected modifiers after update:", selectedModifiers.value)
 }
@@ -91,7 +114,8 @@ const isModifierSelected = (modifierId: string) => {
             const modifier = modifierList.value.find(m => m.id === modifierId)
             if (modifier) {
                 if (value && !selectedModifiers.value.some(m => m.id === modifierId)) {
-                    selectedModifiers.value.push(modifier)
+                    const modCopy = { ...modifier, max_selection: modifier.max_selection || 1 }
+                    selectedModifiers.value.push(modCopy)
                 } else if (!value) {
                     selectedModifiers.value = selectedModifiers.value.filter(m => m.id !== modifierId)
                 }
@@ -103,6 +127,7 @@ const isModifierSelected = (modifierId: string) => {
 
 const saveModifiers = () => {
     emit('selectedModifiers', selectedModifiers.value)
+    emit('selected-modifiers', selectedModifiers.value)
     dialogOpen.value = false
 }
 

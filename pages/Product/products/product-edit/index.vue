@@ -23,16 +23,17 @@ import {
 import ProductModifierDialog from './modifier-dialog.vue'
 
 import { useProductStore } from '@/stores/ProductStore'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import FileInput from '~/components/custom/fileinput/fileinput.vue'
 import { useUsers } from '~/composables/useUsers'
 import IngredientDialog from './ingredients-dialog.vue'
 import { UnitMeasurementOptions } from '@/constants/common'
 import type { Ingredient } from '@/types/menu'
 const router = useRouter()
+const route = useRoute()
 const productStore = useProductStore()
 const { getMe } = useUsers()
-const {editProductByID, uploadProductImage, getModifierOptions } = useMenu()
+const { editProductByID, uploadProductImage, getModifierOptions, getAllMenuProducts } = useMenu()
 const { toast } = useToast()
 const { myProfile } = useMyProfileStore()
 // Define props with modelValue for v-model support
@@ -54,13 +55,28 @@ const selectedIngredients = ref<Ingredient[]>([])
 
 // core place to store the data of the form 
 const formDataMapping = reactive({
-    'Product Modifier': productStore.product?.modifier_groups || [],
-    'Product Ingredients': productStore.product?.ingredients || [],
+    'Product Modifier': productStore.product?.modifier_groups ? JSON.parse(JSON.stringify(productStore.product.modifier_groups)) : [],
+    'Product Ingredients': productStore.product?.ingredients ? JSON.parse(JSON.stringify(productStore.product.ingredients)) : [],
     'Product ImageURL': productStore.product?.image_url || '',
     'Product Images': [] as File[],
     'Product Taxes': productStore.product?.taxes || [] as Tax[],
     'Modifier ID': productStore.product?.modifier_options_id || undefined,
 })
+
+const populateFormData = (product: Product) => {
+    formDataMapping['Product Modifier'] = product.modifier_groups ? JSON.parse(JSON.stringify(product.modifier_groups)) : []
+    formDataMapping['Product Ingredients'] = product.ingredients ? JSON.parse(JSON.stringify(product.ingredients)) : []
+    formDataMapping['Product ImageURL'] = product.image_url || ''
+    formDataMapping['Product Taxes'] = product.taxes || []
+    formDataMapping['Modifier ID'] = product.modifier_options_id || undefined
+    linkToModifier.value = !!product.modifier_options_id
+}
+
+watch(() => productStore.product, (newProd) => {
+    if (newProd) {
+        populateFormData(newProd)
+    }
+}, { immediate: true })
 
 const linkToModifier = ref(productStore.product?.modifier_options_id ? true : false)
 const modifiers = ref<ModifierGroupOption[]>([])
@@ -126,7 +142,10 @@ const submitForm = async() => {
         is_shopee_food: productStore.product?.is_shopee_food as boolean,
         grab_food_info: productStore.product?.grab_food_info || undefined,
         shopee_food_info: productStore.product?.shopee_food_info || undefined,
-        modifier_groups: formDataMapping['Product Modifier'] || [],
+        modifier_groups: (formDataMapping['Product Modifier'] || []).map((m: any) => ({
+            ...m,
+            max_selection: Number(m.max_selection) || 1
+        })),
         taxes: formDataMapping['Product Taxes'] || [],
         modifier_options_id: formDataMapping['Modifier ID'] ? formDataMapping['Modifier ID'] : undefined,
         ingredients: formDataMapping['Product Ingredients'].map((ingredient) => {
@@ -235,6 +254,25 @@ const deleteIngredient = (ingredientID: string) => {
 onMounted(async () => {
     await getMe()
     await fetchModifiers()
+    
+    const productId = route.query.id as string
+    if (productId && (!productStore.product || productStore.product.id !== productId)) {
+        try {
+            const res: any = await getAllMenuProducts({
+                business_id: myProfile.business_id || '',
+                page: 1,
+                page_size: 100
+            })
+            const products = res.data?.products || res.products || res.data || []
+            const found = products.find((p: any) => p.id === productId)
+            if (found) {
+                productStore.setCurrentProduct(found)
+                populateFormData(found)
+            }
+        } catch (err) {
+            console.error("Failed to load product by ID:", err)
+        }
+    }
 })
 
 const fetchModifiers = async () => {
@@ -725,7 +763,9 @@ const handleCancel = () => {
         <ProductModifierDialog 
             v-if="assignModifierGroupDialog" 
             v-model="assignModifierGroupDialog" 
+            :selected-modifiers="formDataMapping['Product Modifier']"
             @selectedModifiers="(modifiers) => formDataMapping['Product Modifier'] = modifiers" 
+            @selected-modifiers="(modifiers) => formDataMapping['Product Modifier'] = modifiers" 
         />
     
         <IngredientDialog                      

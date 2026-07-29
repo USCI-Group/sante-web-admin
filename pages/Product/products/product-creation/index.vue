@@ -582,6 +582,7 @@ const handleChangeBoolean = (key: keyof typeof formDataMapping) => {
         <ModifierDialog                      
             v-if="assignModifierGroupDialog" 
             v-model="assignModifierGroupDialog" 
+            :selected-modifiers="formDataMapping['Product Modifier']"
             @selected-modifiers="(modifiers) => formDataMapping['Product Modifier'] = modifiers" 
         />
 
