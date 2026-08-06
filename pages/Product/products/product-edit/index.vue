@@ -26,6 +26,7 @@ import { useProductStore } from '@/stores/ProductStore'
 import { useRouter, useRoute } from 'vue-router'
 import FileInput from '~/components/custom/fileinput/fileinput.vue'
 import { useUsers } from '~/composables/useUsers'
+import { useOutlets } from '~/composables/useOutlets'
 import IngredientDialog from './ingredients-dialog.vue'
 import { UnitMeasurementOptions } from '@/constants/common'
 import type { Ingredient } from '@/types/menu'
@@ -33,9 +34,15 @@ const router = useRouter()
 const route = useRoute()
 const productStore = useProductStore()
 const { getMe } = useUsers()
-const { editProductByID, uploadProductImage, getModifierOptions, getAllMenuProducts } = useMenu()
+const { editProductByID, uploadProductImage, getModifierOptions, getAllMenuProducts, getProductOutlets, syncProductToOutlet } = useMenu()
+const { getOutletsOptions } = useOutlets()
 const { toast } = useToast()
 const { myProfile } = useMyProfileStore()
+
+const outlets = ref<{ value: string, label: string }[]>([])
+const selectedOutletIDs = ref<string[]>([])
+const originalOutletIDs = ref<string[]>([])
+
 // Define props with modelValue for v-model support
 const props = defineProps<{
 }>()
@@ -167,6 +174,28 @@ const submitForm = async() => {
     }
     try {
         await editProductByID(product)
+
+        // sync outlets
+        const additions = selectedOutletIDs.value.filter(id => !originalOutletIDs.value.includes(id))
+        const removals = originalOutletIDs.value.filter(id => !selectedOutletIDs.value.includes(id))
+
+        for (const outletId of additions) {
+            await syncProductToOutlet({
+                business_id: myProfile.business_id || '',
+                outlet_id: outletId,
+                product_id: product.id,
+                is_add: true
+            })
+        }
+        for (const outletId of removals) {
+            await syncProductToOutlet({
+                business_id: myProfile.business_id || '',
+                outlet_id: outletId,
+                product_id: product.id,
+                is_add: false
+            })
+        }
+
         toast({
             title: 'Product Updated',
             description: 'Product updated successfully',
@@ -255,7 +284,27 @@ onMounted(async () => {
     await getMe()
     await fetchModifiers()
     
+    const businessId = myProfile.business_id || ''
+    if (businessId) {
+        try {
+            const outletsOptions = await getOutletsOptions(businessId)
+            outlets.value = outletsOptions || []
+        } catch (err) {
+            console.error("Failed to load outlets options:", err)
+        }
+    }
+
     const productId = route.query.id as string
+    if (productId) {
+        try {
+            const res = await getProductOutlets(productId)
+            selectedOutletIDs.value = res.outlet_ids || []
+            originalOutletIDs.value = [...(res.outlet_ids || [])]
+        } catch (err) {
+            console.error("Failed to load product outlets:", err)
+        }
+    }
+
     if (productId && (!productStore.product || productStore.product.id !== productId)) {
         try {
             const res: any = await getAllMenuProducts({
@@ -502,6 +551,21 @@ const handleCancel = () => {
                                         :checked="productStore.product.is_store_outlet as boolean"
                                         @update:checked="productStore.product.is_store_outlet = !productStore.product.is_store_outlet"                  
                                     />
+                                </div>
+                                <div v-if="productStore.product?.is_store_outlet" class="pl-4 mt-3 border-l-2 border-green-500 space-y-2 mb-2">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Available Outlets</p>
+                                    <div v-for="outlet in outlets" :key="outlet.value" class="flex items-center space-x-2">
+                                        <input 
+                                            type="checkbox" 
+                                            :id="`outlet-${outlet.value}`" 
+                                            :value="outlet.value" 
+                                            v-model="selectedOutletIDs"
+                                            class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                        />
+                                        <label :for="`outlet-${outlet.value}`" class="text-sm font-medium text-gray-700 cursor-pointer">
+                                            {{ outlet.label }}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 

@@ -693,6 +693,38 @@ export const useMenu = () => {
         }
     }
 
+    const syncProductToOutlet = async (body: { business_id: string, outlet_id: string, product_id: string, is_add: boolean }) => {
+        try {
+            const response = await $fetch(`/api/products/sync-product-to-outlet`, {
+                method: 'POST',
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `${token.value}`,
+                    'Content-Type': 'application/json'
+                },
+                body: body
+            })
+            return response
+        } catch (error: any) {
+            throw error
+        }
+    }
+
+    const getProductOutlets = async (productId: string) => {
+        try {
+            const response = await $fetch<{ outlet_ids: string[] }>(`/api/products/get-product-outlets/${productId}`, {
+                method: 'GET',
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `${token.value}`
+                }
+            })
+            return response
+        } catch (error: any) {
+            throw error
+        }
+    }
+
     return {
         getAllMenuProducts,
         addProduct,
@@ -727,7 +759,9 @@ export const useMenu = () => {
         syncMenuToShopeeForAllOutlets,
         syncMenuToShopee,
         uploadCategoryImage,
-        uploadCategoryBannerImage
+        uploadCategoryBannerImage,
+        syncProductToOutlet,
+        getProductOutlets
     }
 
     
