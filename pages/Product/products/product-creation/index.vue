@@ -174,8 +174,11 @@ const submitForm = async() => {
 
         // sync outlets if display in store outlet is checked
         if (product.is_store_outlet) {
-            const unselectedOutlets = outlets.value.filter(o => !selectedOutletIDs.value.includes(o.value))
-            for (const outletId of selectedOutletIDs.value) {
+            const validOutletIDs = outlets.value.map(o => o.id)
+            const activeSelectedOutletIDs = selectedOutletIDs.value.filter(id => id && validOutletIDs.includes(id))
+            const unselectedOutlets = outlets.value.filter(o => !activeSelectedOutletIDs.includes(o.id))
+
+            for (const outletId of activeSelectedOutletIDs) {
                 await syncProductToOutlet({
                     business_id: me.value?.business_id || '',
                     outlet_id: outletId,
@@ -186,7 +189,7 @@ const submitForm = async() => {
             for (const outlet of unselectedOutlets) {
                 await syncProductToOutlet({
                     business_id: me.value?.business_id || '',
-                    outlet_id: outlet.value,
+                    outlet_id: outlet.id,
                     product_id: response.id,
                     is_add: false
                 })

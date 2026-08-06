@@ -175,9 +175,10 @@ const submitForm = async() => {
     try {
         await editProductByID(product)
 
-        // sync outlets
-        const additions = selectedOutletIDs.value.filter(id => !originalOutletIDs.value.includes(id))
-        const removals = originalOutletIDs.value.filter(id => !selectedOutletIDs.value.includes(id))
+        // sync outlets safely
+        const validOutletIDs = outlets.value.map(o => o.id)
+        const additions = selectedOutletIDs.value.filter(id => id && validOutletIDs.includes(id) && !originalOutletIDs.value.includes(id))
+        const removals = originalOutletIDs.value.filter(id => id && (!validOutletIDs.includes(id) || !selectedOutletIDs.value.includes(id)))
 
         for (const outletId of additions) {
             await syncProductToOutlet({
