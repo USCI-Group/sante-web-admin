@@ -554,16 +554,16 @@ const handleCancel = () => {
                                 </div>
                                 <div v-if="productStore.product?.is_store_outlet" class="pl-4 mt-3 border-l-2 border-green-500 space-y-2 mb-2">
                                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Available Outlets</p>
-                                    <div v-for="outlet in outlets" :key="outlet.value" class="flex items-center space-x-2">
+                                    <div v-for="outlet in outlets" :key="outlet.id" class="flex items-center space-x-2">
                                         <input 
                                             type="checkbox" 
-                                            :id="`outlet-${outlet.value}`" 
-                                            :value="outlet.value" 
+                                            :id="`outlet-${outlet.id}`" 
+                                            :value="outlet.id" 
                                             v-model="selectedOutletIDs"
                                             class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                                         />
-                                        <label :for="`outlet-${outlet.value}`" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                            {{ outlet.label }}
+                                        <label :for="`outlet-${outlet.id}`" class="text-sm font-medium text-gray-700 cursor-pointer">
+                                            {{ outlet.name }}
                                         </label>
                                     </div>
                                 </div>
