@@ -7,7 +7,7 @@ export const useOutlets = () => {
     const { token } = useAuth()
 
     const headers = {
-        'Authorization': `${token.value}`,
+        'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
         'Content-Type': 'application/json'
     }
     
@@ -100,7 +100,7 @@ export const useOutlets = () => {
             const res = await $fetch(`/api/admin/outlet/upload/image`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData
@@ -120,7 +120,7 @@ export const useOutlets = () => {
             const res = await $fetch(`/api/admin/outlet/upload-static-qr`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData

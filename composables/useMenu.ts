@@ -393,7 +393,7 @@ export const useMenu = () => {
             const res = await $fetch(`/api/products/upload/image`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData
@@ -410,7 +410,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response.data
@@ -425,7 +425,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: ingredient
             })
@@ -441,7 +441,7 @@ export const useMenu = () => {
                 method: 'PUT',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: ingredient
             })
@@ -457,7 +457,7 @@ export const useMenu = () => {
                 method: 'DELETE',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -475,7 +475,7 @@ export const useMenu = () => {
             const res = await $fetch(`/api/ingredients/upload/image`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData
@@ -498,7 +498,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: body
             })
@@ -514,7 +514,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -529,7 +529,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: modifierGroup
             })
@@ -546,7 +546,7 @@ export const useMenu = () => {
                 method: 'DELETE',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -561,7 +561,7 @@ export const useMenu = () => {
                 method: 'PUT',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: modifierGroup
             })
@@ -577,7 +577,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: {
                     modifier_ingredient_mappings: modifierIngredientMappings
@@ -595,7 +595,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -610,7 +610,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -631,7 +631,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: body
             })
@@ -653,7 +653,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 body: body
             })
@@ -669,7 +669,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -684,7 +684,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
             })
             return response
@@ -699,7 +699,7 @@ export const useMenu = () => {
                 method: 'POST',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                     'Content-Type': 'application/json'
                 },
                 body: body
@@ -716,7 +716,7 @@ export const useMenu = () => {
                 method: 'GET',
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`
                 }
             })
             return response
