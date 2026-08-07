@@ -18,7 +18,7 @@ const { me, getMe, checkPermission } = useUsers()
 const meta = ref<Meta>({
   total: 0,
   page: 1,
-  page_size: 10,
+  page_size: 100,
   total_pages: 1
 })
 
@@ -53,8 +53,8 @@ watch(addCategoryDialog, async (newVal) => {
     }
 })
 
-watch(meta, async (newVal) => {
-    console.log("meta watch-----> ", newVal)
+watch(() => [meta.value.page, meta.value.page_size], async (newVal) => {
+    console.log("meta pagination watch-----> ", newVal)
     await loadData()
 })
 

@@ -285,7 +285,7 @@ export const useMenu = () => {
             const res = await $fetch(`/api/products/category/upload-image`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData
@@ -305,7 +305,7 @@ export const useMenu = () => {
             const res = await $fetch(`/api/products/category/upload-banner`, {
                 baseURL: baseUrl,
                 headers: {
-                    'Authorization': `${token.value}`,
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
                 },
                 method: 'POST', 
                 body: formData
