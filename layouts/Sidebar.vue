@@ -129,6 +129,12 @@ const mainMenuItems: MenuItem[] = [
         enabled: checkPermission('read_product')
       },
       {
+        title: "Vouchers & Rewards",
+        path: "/product/vouchers",
+        icon: "heroicons:gift",
+        enabled: checkPermission('read_product')
+      },
+      {
         title: "Stock Management",
         path: "/product/stock",
         icon: "heroicons:archive-box-arrow-down",
