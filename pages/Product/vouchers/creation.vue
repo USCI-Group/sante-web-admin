@@ -81,14 +81,13 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '~/store/AuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 
 const router = useRouter()
 const { toast } = useToast()
-const authStore = useAuthStore()
-const { token, data } = useAuth()
+const { token } = useAuth()
 const config = useRuntimeConfig()
+const { me, getMe } = useUsers()
 const loading = ref(false)
 
 const form = reactive({
@@ -110,7 +109,8 @@ const submit = async () => {
 
   loading.value = true
   try {
-    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    await getMe()
+    const businessId = me.value?.business_id
     await $fetch(`${config.public.apiUrl}/api/admin/vouchers`, {
       method: 'POST',
       headers: { Authorization: token.value },

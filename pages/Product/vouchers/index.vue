@@ -18,75 +18,80 @@
     <!-- Actions -->
     <div class="flex justify-between items-center mt-6">
       <div class="flex items-center gap-2 w-1/3">
-        <Input class="w-full h-10 border border-gray-200 rounded-lg shadow-sm" placeholder="Search Vouchers" />
+        <input class="w-full h-10 border border-gray-200 rounded-lg shadow-sm px-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981]" placeholder="Search Vouchers" />
       </div>
-      <Button class="bg-[#10B981] hover:bg-[#059669] text-white flex items-center gap-2 px-4 shadow-md rounded-lg" @click="$router.push('/Product/vouchers/creation')">
+      <button class="bg-[#10B981] hover:bg-[#059669] text-white flex items-center gap-2 px-4 py-2 shadow-md rounded-lg text-sm font-medium transition-colors" @click="$router.push('/Product/vouchers/creation')">
         <Icon name="mdi:plus" class="text-lg" /> Add Voucher
-      </Button>
+      </button>
     </div>
 
     <!-- Table -->
     <div class="mt-6 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-      <Table>
-        <TableHeader class="bg-gray-50 border-b border-gray-100">
-          <TableRow>
-            <TableHead class="font-semibold text-gray-600">Voucher Name</TableHead>
-            <TableHead class="font-semibold text-gray-600">Description</TableHead>
-            <TableHead class="font-semibold text-gray-600">Points Cost</TableHead>
-            <TableHead class="font-semibold text-gray-600">Discount</TableHead>
-            <TableHead class="font-semibold text-gray-600 text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="voucher in vouchers" :key="voucher.id" class="hover:bg-gray-50 transition-colors">
-            <TableCell class="font-medium text-gray-800">{{ voucher.name }}</TableCell>
-            <TableCell class="text-gray-500 max-w-[250px] truncate">{{ voucher.description }}</TableCell>
-            <TableCell>
-              <div class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-xs font-bold inline-block border border-yellow-200">
-                {{ voucher.redeem_value }} pts
-              </div>
-            </TableCell>
-            <TableCell class="text-gray-600 font-medium">
-               RM {{ voucher.discount_value }}
-            </TableCell>
-            <TableCell class="text-right">
-              <Button variant="ghost" class="text-red-500 hover:bg-red-50 hover:text-red-600 h-8 px-3" @click="deleteVoucher(voucher.id)">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Voucher Name</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Description</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Points Cost</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Discount</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="voucher in vouchers" :key="voucher.id" class="hover:bg-gray-50 transition-colors border-b border-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-800">{{ voucher.name }}</td>
+            <td class="px-4 py-3 text-gray-500 max-w-[250px] truncate">{{ voucher.description }}</td>
+            <td class="px-4 py-3">
+              <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-xs font-bold inline-block border border-yellow-200">
+                {{ voucher.points_required || voucher.redeem_value || '—' }} pts
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-600 font-medium">
+               RM {{ voucher.redeem_value || voucher.discount_value || '—' }}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button class="text-red-500 hover:bg-red-50 hover:text-red-600 px-3 py-1 rounded-md text-sm transition-colors" @click="deleteVoucher(voucher.id)">
                 <Icon name="mdi:trash-can-outline" class="text-lg mr-1" /> Delete
-              </Button>
-            </TableCell>
-          </TableRow>
-          <TableRow v-if="vouchers.length === 0 && !loading">
-            <TableCell colspan="5" class="h-32 text-center text-gray-500">
+              </button>
+            </td>
+          </tr>
+          <tr v-if="vouchers.length === 0 && !loading">
+            <td colspan="5" class="h-32 text-center text-gray-500">
               No vouchers found. Click "Add Voucher" to create one.
-            </TableCell>
-          </TableRow>
-          <TableRow v-if="loading">
-            <TableCell colspan="5" class="h-32 text-center text-gray-500">
+            </td>
+          </tr>
+          <tr v-if="loading">
+            <td colspan="5" class="h-32 text-center text-gray-500">
               Loading vouchers...
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '~/store/AuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 
 const { toast } = useToast()
-const authStore = useAuthStore()
-const { token, data } = useAuth()
+const { token } = useAuth()
 const config = useRuntimeConfig()
+const { me, getMe } = useUsers()
 const vouchers = ref([])
 const loading = ref(true)
 
 const fetchVouchers = async () => {
   loading.value = true
   try {
-    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    await getMe()
+    const businessId = me.value?.business_id
+    if (!businessId) {
+      console.error('No business_id found for user')
+      loading.value = false
+      return
+    }
     const response = await $fetch(`${config.public.apiUrl}/api/admin/vouchers/${businessId}`, {
       headers: { Authorization: token.value }
     })
@@ -101,7 +106,7 @@ const fetchVouchers = async () => {
 const deleteVoucher = async (id) => {
   if (!confirm('Are you sure you want to delete this voucher?')) return
   try {
-    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    const businessId = me.value?.business_id
     await $fetch(`${config.public.apiUrl}/api/admin/vouchers/${businessId}/${id}`, {
       method: 'DELETE',
       headers: { Authorization: token.value }
