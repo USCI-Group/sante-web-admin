@@ -87,6 +87,7 @@ import { useToast } from '@/components/ui/toast/use-toast'
 const router = useRouter()
 const { toast } = useToast()
 const authStore = useAuthStore()
+const { token, data } = useAuth()
 const config = useRuntimeConfig()
 const loading = ref(false)
 
@@ -106,11 +107,12 @@ const submit = async () => {
 
   loading.value = true
   try {
-    await $fetch(`${config.public.apiBaseUrl}/api/admin/vouchers`, {
+    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    await $fetch(`${config.public.apiUrl}/api/admin/vouchers`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${authStore.token}` },
+      headers: { Authorization: token.value },
       body: {
-        business_id: authStore.user.business_id,
+        business_id: businessId,
         ...form
       }
     })

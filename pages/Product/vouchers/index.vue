@@ -78,6 +78,7 @@ import { useToast } from '@/components/ui/toast/use-toast'
 
 const { toast } = useToast()
 const authStore = useAuthStore()
+const { token, data } = useAuth()
 const config = useRuntimeConfig()
 const vouchers = ref([])
 const loading = ref(true)
@@ -85,8 +86,9 @@ const loading = ref(true)
 const fetchVouchers = async () => {
   loading.value = true
   try {
-    const response = await $fetch(`${config.public.apiBaseUrl}/api/admin/vouchers/${authStore.user.business_id}`, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
+    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    const response = await $fetch(`${config.public.apiUrl}/api/admin/vouchers/${businessId}`, {
+      headers: { Authorization: token.value }
     })
     vouchers.value = response.vouchers || []
   } catch (error) {
@@ -99,9 +101,10 @@ const fetchVouchers = async () => {
 const deleteVoucher = async (id) => {
   if (!confirm('Are you sure you want to delete this voucher?')) return
   try {
-    await $fetch(`${config.public.apiBaseUrl}/api/admin/vouchers/${authStore.user.business_id}/${id}`, {
+    const businessId = data.value?.user?.business_id || authStore.getUser?.business_id
+    await $fetch(`${config.public.apiUrl}/api/admin/vouchers/${businessId}/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${authStore.token}` }
+      headers: { Authorization: token.value }
     })
     toast({ title: 'Success', description: 'Voucher deleted successfully.' })
     fetchVouchers()
