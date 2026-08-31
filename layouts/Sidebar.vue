@@ -96,6 +96,12 @@ const mainMenuItems: MenuItem[] = [
         icon: "heroicons:clock",
         enabled: checkPermission('create_product')
       },
+      {
+        title: "Parties & Events",
+        path: "/operation/events", 
+        icon: "heroicons:photo",
+        enabled: true
+      },
     ]
   },
   {
