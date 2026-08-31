@@ -23,22 +23,22 @@
         
         <!-- Name -->
         <div class="flex flex-col gap-2">
-          <Label class="text-sm font-semibold text-gray-700">Voucher Name <span class="text-red-500">*</span></Label>
-          <Input v-model="form.name" placeholder="e.g. RM 10 Off Voucher" class="h-11 bg-gray-50 border-gray-200" />
+          <label class="text-sm font-semibold text-gray-700">Voucher Name <span class="text-red-500">*</span></label>
+          <input v-model="form.name" type="text" placeholder="e.g. RM 10 Off Voucher" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent" />
         </div>
 
         <!-- Description -->
         <div class="flex flex-col gap-2">
-          <Label class="text-sm font-semibold text-gray-700">Description <span class="text-red-500">*</span></Label>
-          <Textarea v-model="form.description" placeholder="e.g. Redeem 200 points to get RM 10 off your total bill." class="bg-gray-50 border-gray-200" rows="3" />
+          <label class="text-sm font-semibold text-gray-700">Description <span class="text-red-500">*</span></label>
+          <textarea v-model="form.description" rows="3" placeholder="e.g. Redeem 200 points to get RM 10 off your total bill." class="flex w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent resize-none"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-6">
           <!-- Points Cost -->
           <div class="flex flex-col gap-2">
-            <Label class="text-sm font-semibold text-gray-700">Points Cost <span class="text-red-500">*</span></Label>
+            <label class="text-sm font-semibold text-gray-700">Points Cost <span class="text-red-500">*</span></label>
             <div class="relative">
-              <input v-model="form.points_cost" type="number" placeholder="200" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+              <input v-model="form.points_cost" type="number" placeholder="200" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2">
                 <Icon name="mdi:star-circle" class="text-yellow-400 text-lg" />
               </div>
@@ -47,9 +47,9 @@
 
           <!-- Discount Value -->
           <div class="flex flex-col gap-2">
-            <Label class="text-sm font-semibold text-gray-700">Discount Value (RM) <span class="text-red-500">*</span></Label>
+            <label class="text-sm font-semibold text-gray-700">Discount Value (RM) <span class="text-red-500">*</span></label>
             <div class="relative">
-              <input v-model="form.discount_value" type="number" step="0.01" placeholder="10.00" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+              <input v-model="form.discount_value" type="number" step="0.01" placeholder="10.00" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-sm">
                 RM
               </div>
@@ -68,11 +68,11 @@
       </div>
 
       <div class="mt-8 flex justify-end gap-3">
-        <Button variant="outline" class="h-11 px-6 border-gray-200" @click="$router.push('/Product/vouchers')">Cancel</Button>
-        <Button :disabled="loading" class="h-11 px-8 bg-[#10B981] hover:bg-[#059669] text-white shadow-md" @click="submit">
-          <Icon v-if="loading" name="mdi:loading" class="animate-spin mr-2" />
-          Create Voucher
-        </Button>
+        <button class="h-11 px-6 border border-gray-200 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors" @click="$router.push('/Product/vouchers')">Cancel</button>
+        <button :disabled="loading" class="h-11 px-8 bg-[#10B981] hover:bg-[#059669] text-white rounded-md text-sm font-medium shadow-md disabled:opacity-50 transition-colors" @click="submit">
+          <span v-if="loading">Creating...</span>
+          <span v-else>Create Voucher</span>
+        </button>
       </div>
     </div>
   </div>
@@ -126,7 +126,8 @@ const submit = async () => {
     toast({ title: 'Success', description: 'Voucher created successfully!' })
     router.push('/Product/vouchers')
   } catch (error) {
-    toast({ title: 'Error', description: 'Failed to create voucher.', variant: 'destructive' })
+    console.error('Voucher creation error:', error)
+    toast({ title: 'Error', description: error?.data?.message || 'Failed to create voucher.', variant: 'destructive' })
   } finally {
     loading.value = false
   }
