@@ -38,7 +38,7 @@
           <div class="flex flex-col gap-2">
             <Label class="text-sm font-semibold text-gray-700">Points Cost <span class="text-red-500">*</span></Label>
             <div class="relative">
-              <Input v-model.number="form.points_cost" type="number" placeholder="200" class="h-11 pl-10 bg-gray-50 border-gray-200" />
+              <Input v-model="form.points_cost" type="number" placeholder="200" class="h-11 pl-10 bg-gray-50 border-gray-200" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2">
                 <Icon name="mdi:star-circle" class="text-yellow-400 text-lg" />
               </div>
@@ -49,7 +49,7 @@
           <div class="flex flex-col gap-2">
             <Label class="text-sm font-semibold text-gray-700">Discount Value (RM) <span class="text-red-500">*</span></Label>
             <div class="relative">
-              <Input v-model.number="form.discount_value" type="number" placeholder="10.00" class="h-11 pl-10 bg-gray-50 border-gray-200" />
+              <Input v-model="form.discount_value" type="number" placeholder="10.00" class="h-11 pl-10 bg-gray-50 border-gray-200" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-sm">
                 RM
               </div>
@@ -94,13 +94,16 @@ const loading = ref(false)
 const form = reactive({
   name: '',
   description: '',
-  points_cost: null,
-  discount_value: null,
+  points_cost: '',
+  discount_value: '',
   discount_type: 'fixed'
 })
 
 const submit = async () => {
-  if (!form.name || !form.description || !form.points_cost || !form.discount_value) {
+  const pointsCost = Number(form.points_cost)
+  const discountValue = Number(form.discount_value)
+
+  if (!form.name.trim() || !form.description.trim() || !pointsCost || !discountValue) {
     toast({ title: 'Error', description: 'Please fill in all fields.', variant: 'destructive' })
     return
   }
@@ -113,7 +116,11 @@ const submit = async () => {
       headers: { Authorization: token.value },
       body: {
         business_id: businessId,
-        ...form
+        name: form.name.trim(),
+        description: form.description.trim(),
+        points_cost: pointsCost,
+        discount_value: discountValue,
+        discount_type: form.discount_type
       }
     })
     toast({ title: 'Success', description: 'Voucher created successfully!' })
