@@ -73,7 +73,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '~/store/auth'
+import { useAuthStore } from '~/store/AuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 
 const { toast } = useToast()

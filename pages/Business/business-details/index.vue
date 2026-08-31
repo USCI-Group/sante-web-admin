@@ -146,9 +146,8 @@ const outletsColumns: ColumnDef<Outlet, any>[] = [
                       'px-2 py-1 text-xs rounded-full',
                       {
                         'border border-blue-500 text-blue-500 bg-blue-50': row.original?.address?.state === 'Selangor',
-                        'border border-green-500 text-green-500 bg-green-50': row.original?.address?.state === 'Kuala Lumpur',
+                        'border border-green-500 text-green-500 bg-green-50': row.original?.address?.state === 'Kuala Lumpur' || row.original?.address?.state === 'Johor',
                         'border border-purple-500 text-purple-500 bg-purple-50': row.original?.address?.state === 'Penang',
-                        'border border-green-500 text-green-500 bg-green-50': row.original?.address?.state === 'Johor',
                         'border border-gray-500 text-gray-500 bg-gray-50': !['Selangor', 'Kuala Lumpur', 'Penang', 'Johor'].includes(row.original?.address?.state || '')
                       }
                     ]

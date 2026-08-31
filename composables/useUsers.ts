@@ -176,6 +176,20 @@ export const useUsers = () => {
         }
     }
 
+    const generateVipCode = async (businessId: string) => {
+        try {
+            const res = await $fetch<{ code: string }>(`/api/admin/vip/generate-code`, {
+                baseURL: baseUrl,
+                headers,
+                method: 'POST',
+                body: { business_id: businessId }
+            })
+            return res
+        } catch (error) {
+            throw error
+        }
+    }
+
     return {
         me,
         myPermissions,
@@ -189,6 +203,7 @@ export const useUsers = () => {
         isBusinessAdmin,
         isOutletAdmin,
         checkPermission,
-        getUsersWithOutletGroupRole
+        getUsersWithOutletGroupRole,
+        generateVipCode
     }
 }
