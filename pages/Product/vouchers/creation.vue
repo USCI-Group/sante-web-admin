@@ -38,7 +38,7 @@
           <div class="flex flex-col gap-2">
             <Label class="text-sm font-semibold text-gray-700">Points Cost <span class="text-red-500">*</span></Label>
             <div class="relative">
-              <Input v-model="form.points_cost" type="number" placeholder="200" class="h-11 pl-10 bg-gray-50 border-gray-200" />
+              <input v-model="form.points_cost" type="number" placeholder="200" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2">
                 <Icon name="mdi:star-circle" class="text-yellow-400 text-lg" />
               </div>
@@ -49,7 +49,7 @@
           <div class="flex flex-col gap-2">
             <Label class="text-sm font-semibold text-gray-700">Discount Value (RM) <span class="text-red-500">*</span></Label>
             <div class="relative">
-              <Input v-model="form.discount_value" type="number" placeholder="10.00" class="h-11 pl-10 bg-gray-50 border-gray-200" />
+              <input v-model="form.discount_value" type="number" step="0.01" placeholder="10.00" class="flex h-11 w-full rounded-md border border-gray-200 bg-gray-50 pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
               <div class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-sm">
                 RM
               </div>
