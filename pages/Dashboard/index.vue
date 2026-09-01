@@ -21,6 +21,7 @@ const generatedVipCode = ref("");
 const isGeneratingVip = ref(false);
 const totalUsers = ref(0);
 const totalRevenue = ref(0);
+const totalOrders = ref(0);
 
 const handleGenerateVip = async () => {
   if (!businessId.value) return;
@@ -51,6 +52,7 @@ const loadDashboardData = async () => {
     start.setDate(start.getDate() - 30);
     const summary = await getFullReportSummaryDetails('', start.toISOString(), new Date().toISOString());
     totalRevenue.value = summary?.sales_info?.total_net_sales || 0;
+    totalOrders.value = summary?.sales_info?.no_of_sales_trans || 0;
   } catch (e) {
     console.error("Failed to fetch revenue for dashboard", e);
   }
@@ -65,7 +67,7 @@ onMounted(() => {
   <div class="p-6 bg-white">
       <h1>Dashboard</h1>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <!-- Total Users Card -->
         <div class="p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center justify-between">
@@ -101,34 +103,14 @@ onMounted(() => {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-gray-500">Total Orders</p>
-              <p class="text-2xl font-semibold">1,257</p>
+              <p class="text-2xl font-semibold">{{ totalOrders }}</p>
             </div>
             <div class="p-2 bg-purple-100 rounded-lg">
               <Icon name="heroicons:shopping-cart" class="w-6 h-6 text-purple-600" />
             </div>
           </div>
-          <div class="mt-2">
-            <span class="text-sm text-green-600">+5.3%</span>
-            <span class="text-sm text-gray-500 ml-1">from last month</span>
-          </div>
         </div>
 
-        <!-- Active Users Card -->
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500">Active Users</p>
-              <p class="text-2xl font-semibold">892</p>
-            </div>
-            <div class="p-2 bg-green-100 rounded-lg">
-              <Icon name="heroicons:user-circle" class="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          <div class="mt-2">
-            <span class="text-sm text-red-600">-2.1%</span>
-            <span class="text-sm text-gray-500 ml-1">from last month</span>
-          </div>
-        </div>
       </div>
 
       <!-- Chart Section -->
