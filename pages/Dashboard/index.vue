@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ProfileDropdown from '~/components/custom/ProfileDropdown.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 
 definePageMeta({
   layout: 'default',
@@ -13,9 +13,10 @@ useSeoMeta({
   title: config.public.appName + " | Dashboard Admin",
 });
 
-const { generateVipCode, getUsersWithOutletGroupRole } = useUsers();
+const { generateVipCode, getUsersWithOutletGroupRole, me } = useUsers();
 const { getFullReportSummaryDetails } = useFinances();
-const { businessId } = useAuth();
+
+const businessId = computed(() => me.value?.business_id);
 
 const generatedVipCode = ref("");
 const isGeneratingVip = ref(false);
@@ -151,7 +152,7 @@ onMounted(() => {
             <Icon name="heroicons:star-solid" class="w-6 h-6" />
             VIP Invite Generator
           </h2>
-          <p class="text-sm text-gray-600 mt-1">Generate a one-time VIP code to send via WhatsApp. It grants the customer a permanent 5% discount.</p>
+          <p class="text-sm text-gray-600 mt-1">Generate a one-time VIP code. It grants the customer a permanent 5% discount.</p>
         </div>
         <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
           <button 
@@ -165,7 +166,7 @@ onMounted(() => {
           </button>
           
           <div v-if="generatedVipCode" class="mt-2 text-center bg-yellow-50 px-4 py-2 rounded-md border border-yellow-200 w-full">
-            <p class="text-xs text-yellow-700 font-semibold mb-1">Copy & Send via WhatsApp:</p>
+            <p class="text-xs text-yellow-700 font-semibold mb-1">Copy the VIP Code:</p>
             <p class="text-lg font-mono font-bold tracking-wider text-black select-all">{{ generatedVipCode }}</p>
           </div>
         </div>
