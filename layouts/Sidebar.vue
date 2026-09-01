@@ -34,8 +34,12 @@ interface MenuItem {
 }
 
 const mainMenuItems: MenuItem[] = [
-  // ... (menu items definition unchanged)
-  // (omitted for brevity, as in your original file)
+  {
+    title: "Dashboard",
+    path: "/Dashboard",
+    icon: "heroicons:chart-bar",
+    enabled: true
+  },
   {
     title: "User Management",
     path: "#",

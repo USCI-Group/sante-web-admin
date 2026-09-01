@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ProfileDropdown from '~/components/custom/ProfileDropdown.vue';
+import { onMounted, ref } from 'vue';
 
 definePageMeta({
   layout: 'default',
@@ -12,12 +13,14 @@ useSeoMeta({
   title: config.public.appName + " | Dashboard Admin",
 });
 
-const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane";
-
-const { generateVipCode } = useUsers();
+const { generateVipCode, getUsersWithOutletGroupRole } = useUsers();
+const { getFullReportSummaryDetails } = useFinances();
 const { businessId } = useAuth();
+
 const generatedVipCode = ref("");
 const isGeneratingVip = ref(false);
+const totalUsers = ref(0);
+const totalRevenue = ref(0);
 
 const handleGenerateVip = async () => {
   if (!businessId.value) return;
@@ -33,6 +36,29 @@ const handleGenerateVip = async () => {
   }
 };
 
+const loadDashboardData = async () => {
+  if (!businessId.value) return;
+  
+  try {
+    const users = await getUsersWithOutletGroupRole(businessId.value);
+    totalUsers.value = users?.length || 0;
+  } catch (e) {
+    console.error("Failed to fetch users for dashboard", e);
+  }
+
+  try {
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    const summary = await getFullReportSummaryDetails('', start.toISOString(), new Date().toISOString());
+    totalRevenue.value = summary?.sales_info?.total_net_sales || 0;
+  } catch (e) {
+    console.error("Failed to fetch revenue for dashboard", e);
+  }
+};
+
+onMounted(() => {
+  loadDashboardData();
+});
 
 </script>
 <template>
@@ -45,15 +71,11 @@ const handleGenerateVip = async () => {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-gray-500">Total Users</p>
-              <p class="text-2xl font-semibold">2,453</p>
+              <p class="text-2xl font-semibold">{{ totalUsers }}</p>
             </div>
             <div class="p-2 bg-blue-100 rounded-lg">
               <Icon name="heroicons:users" class="w-6 h-6 text-blue-600" />
             </div>
-          </div>
-          <div class="mt-2">
-            <span class="text-sm text-green-600">+12.5%</span>
-            <span class="text-sm text-gray-500 ml-1">from last month</span>
           </div>
         </div>
 
@@ -61,8 +83,8 @@ const handleGenerateVip = async () => {
         <div class="p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500">Total Revenue</p>
-              <p class="text-2xl font-semibold">$42,150</p>
+              <p class="text-sm text-gray-500">Total Revenue (30 days)</p>
+              <p class="text-2xl font-semibold">RM {{ totalRevenue.toFixed(2) }}</p>
             </div>
             <div class="p-2 bg-green-100 rounded-lg">
               <Icon name="heroicons:currency-dollar" class="w-6 h-6 text-green-600" />
