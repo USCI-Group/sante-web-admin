@@ -1,0 +1,194 @@
+--- components/custom/communication/CreateAnnouncementDialog.vue
++++ components/custom/communication/CreateAnnouncementDialog.vue
+@@ -35,6 +35,17 @@
+   'submit': []
+ }>()
+ 
++const form = ref<any>({
++  id: '',
++  title: '',
++  description: '',
++  start_date: '',
++  end_date: '',
++  type: 'slide',
++  is_active: true,
++  image_url: '',
++})
++
+ const imageFiles = ref<File[]>([])
+ const errorMessages = ref({
+   title: '',
+@@ -53,6 +64,18 @@
+         type: ''
+       }
++      
++      if (props.mode === 'edit' && props.announcement) {
++        form.value = { ...props.announcement }
++      } else {
++        form.value = {
++          id: '',
++          title: '',
++          description: '',
++          start_date: '',
++          end_date: '',
++          type: 'slide',
++          is_active: true,
++          image_url: '',
++        }
++      }
+     }
+   }
+ )
+@@ -73,20 +96,20 @@
+   }
+ 
+-  if (!props.announcement.start_date) {
++  if (!form.value.start_date) {
+     errorMessages.value.start_date = 'Start date is required'
+     hasError = true
+   }
+-  if (!props.announcement.end_date) {
++  if (!form.value.end_date) {
+     errorMessages.value.end_date = 'End date is required'
+     hasError = true
+   }
+ 
+-  if (!props.announcement.title) {
++  if (!form.value.title) {
+     errorMessages.value.title = 'Title is required'
+     hasError = true
+   }
+ 
+-  if (!props.announcement.description) {
++  if (!form.value.description) {
+     errorMessages.value.description = 'Description is required'
+     hasError = true
+   }
+@@ -103,7 +126,7 @@
+   if (props.mode === 'create') {
+     await createAnnouncementFunction()
+   } else {
+-    await updateAnnouncementFunction(props.announcement)
++    await updateAnnouncementFunction(form.value)
+   }
+ 
+ }
+@@ -112,12 +135,12 @@
+   try {
+     const res = await createAnnouncement({
+       business_id: props.businessId,
+-      is_active: props.announcement.is_active,
+-      start_date: props.announcement.start_date || '',
+-      end_date: props.announcement.end_date || '',
+-      type: props.announcement.type || 'slide',
++      is_active: form.value.is_active,
++      start_date: form.value.start_date || '',
++      end_date: form.value.end_date || '',
++      type: form.value.type || 'slide',
+       file: imageFiles.value[0],
+-      title: props.announcement.title,
+-      description: props.announcement.description,
++      title: form.value.title,
++      description: form.value.description,
+     });
+ 
+@@ -198,143 +221,143 @@
+ 
+         <div class="grid gap-4">
+           <div class="grid gap-2">
+             <Label>Title <span class="text-red-500">*</span></Label>
+             <Input
+-              v-model="announcement.title"
++              v-model="form.title"
+               placeholder="Enter announcement title"
+               :class="{ 'border-red-500': errorMessages.title }"
+             />
+             <span v-if="errorMessages.title" class="text-sm text-red-500">{{ errorMessages.title }}</span>
+           </div>
+         </div>
+ 
+         <div class="grid gap-4">
+           <div class="grid gap-2">
+             <Label>Description <span class="text-red-500">*</span></Label>
+             <textarea
+-              v-model="announcement.description"
++              v-model="form.description"
+               placeholder="Enter announcement description"
+               class="border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black focus:border-black resize-y"
+               rows="4"
+             ></textarea>
+             <span v-if="errorMessages.description" class="text-sm text-red-500">{{ errorMessages.description }}</span>
+           </div>
+         </div>
+ 
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div class="grid gap-2">
+             <Label>Start Date <span class="text-red-500">*</span></Label>
+             <VueDatePicker 
+               :enable-time-picker="false"
+-              v-model="announcement.start_date"
++              v-model="form.start_date"
+             />
+             <div v-if="errorMessages.start_date" class="text-sm text-red-500">{{ errorMessages.start_date }}</div>
+           </div>
+           <div class="grid gap-2">
+             <Label>End Date <span class="text-red-500">*</span></Label>
+             <VueDatePicker 
+               :enable-time-picker="false"
+-              v-model="announcement.end_date"
++              v-model="form.end_date"
+             />
+             <div v-if="errorMessages.end_date" class="text-sm text-red-500">{{ errorMessages.end_date }}</div>
+           </div>
+         </div>
+ 
+         <div class="grid gap-2">
+           <Label>Display Location <span class="text-red-500">*</span></Label>
+           <select
+-            v-model="announcement.type"
++            v-model="form.type"
+             class="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-black focus:border-black"
+           >
+             <option value="slide">Home Screen Slide</option>
+             <option value="promotion">Promotions Page Event</option>
+           </select>
+         </div>
+ 
+         <div class="grid gap-4">
+           <div class="grid gap-2">
+             <Label>Status</Label>
+             <div class="flex items-center space-x-2">
+               <button
+                 type="button"
+                 class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+-                :class="announcement.is_active ? 'bg-black' : 'bg-gray-200'"
+-                @click="announcement.is_active = !announcement.is_active"
++                :class="form.is_active ? 'bg-black' : 'bg-gray-200'"
++                @click="form.is_active = !form.is_active"
+               >
+                 <span
+                   aria-hidden="true"
+                   class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+-                  :class="announcement.is_active ? 'translate-x-5' : 'translate-x-0'"
++                  :class="form.is_active ? 'translate-x-5' : 'translate-x-0'"
+                 />
+               </button>
+               <span class="text-sm text-gray-500">
+-                {{ announcement.is_active ? 'Active' : 'Inactive' }}
++                {{ form.is_active ? 'Active' : 'Inactive' }}
+               </span>
+             </div>
+           </div>
+         </div>
+ 
+         <div class="grid gap-4">
+           <div class="grid gap-2">
+             <Label>Image <span v-if="mode === 'create'" class="text-red-500">*</span></Label>
+             <FileInput
+               v-model="imageFiles"
+               accept="image/*"
+-              :previewUrls="announcement.image_url"
++              :previewUrls="form.image_url"
+             />
+             <span v-if="errorMessages.image" class="text-sm text-red-500">{{ errorMessages.image }}</span>
+           </div>

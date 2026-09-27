@@ -1,0 +1,10 @@
+--- components/custom/communication/CreateAnnouncementDialog.vue
++++ components/custom/communication/CreateAnnouncementDialog.vue
+@@ -162,6 +162,7 @@
+       title: announcement.title,
+       description: announcement.description,
+     }
++    console.log("PAYLOAD BEFORE UPDATE:", payload)
+ 
+     if (imageFiles.value.length > 0) {
+       payload.file = imageFiles.value[0]
