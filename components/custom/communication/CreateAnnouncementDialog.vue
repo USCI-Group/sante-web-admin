@@ -47,6 +47,7 @@ const form = ref<any>({
   type: 'slide',
   is_active: true,
   image_url: '',
+  send_push: false,
 })
 
 const imageFiles = ref<File[]>([])
@@ -83,6 +84,7 @@ watch(
           type: 'slide',
           is_active: true,
           image_url: '',
+          send_push: false,
         }
       }
     }
@@ -149,6 +151,7 @@ const createAnnouncementFunction = async () => {
       file: imageFiles.value[0],
       title: form.value.title,
       description: form.value.description,
+      send_push: !!form.value.send_push,
     });
 
     emit('submit')
@@ -184,6 +187,7 @@ async function updateAnnouncementFunction() {
       type: form.value.type || 'slide',
       title: form.value.title,
       description: form.value.description,
+      send_push: !!form.value.send_push,
     }
     console.log("PAYLOAD BEFORE UPDATE:", payload)
 
@@ -311,6 +315,16 @@ async function updateAnnouncementFunction() {
               <span class="text-sm font-medium">Inactive</span>
             </label>
           </div>
+        </div>
+
+        <div class="grid gap-1">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="accent-primary" v-model="form.send_push" />
+            <span class="text-sm font-medium">Send a push notification to customers</span>
+          </label>
+          <p class="text-xs text-gray-500">
+            Sent to this business's customers when you save with this ticked. Leave it off for pop-ups and slides.
+          </p>
         </div>
 
         <div class="w-full">

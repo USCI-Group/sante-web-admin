@@ -169,13 +169,13 @@ export const useCommunication = () => {
     const createAnnouncement = async (body: {
         business_id: string,
         file: File
-  type?: string,
         is_active: boolean,
         start_date: string,
         end_date: string,
         type?: string,
         title: string,
         description: string,
+        send_push?: boolean,
     }) => {
         try {
             const formData = new FormData()
@@ -187,6 +187,7 @@ export const useCommunication = () => {
             formData.append('end_date', new Date(body.end_date).toISOString())
             formData.append('title', body.title)
             formData.append('description', body.description)
+            formData.append('send_push', body.send_push ? 'true' : 'false')
 
             const res = await $fetch(`/api/admin/business/announcement/create`, {
                 baseURL: baseUrl,
@@ -211,6 +212,7 @@ export const useCommunication = () => {
         type?: string,
         title: string,
         description: string,
+        send_push?: boolean,
     }) => {
         try {
             const formData = new FormData()
@@ -224,6 +226,7 @@ export const useCommunication = () => {
             formData.append('end_date', new Date(body.end_date).toISOString())
             formData.append('title', body.title)
             formData.append('description', body.description)
+            formData.append('send_push', body.send_push ? 'true' : 'false')
 
             const res = await $fetch(`/api/admin/business/announcement/update`, {
                 baseURL: baseUrl,
