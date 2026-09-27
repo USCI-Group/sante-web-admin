@@ -38,6 +38,7 @@ const formData = reactive({
     external_id: props.category?.external_id || '',
     description: props.category?.description || '',
     business_id: '',
+    sort_order: props.category?.sort_order ?? 0,
 })
 
 const validationSchema = {
@@ -73,6 +74,7 @@ const submitForm = async() => {
         external_id: formData.external_id.trim() || undefined,
         name: formData.name.trim(),
         description: formData.description.trim(),
+        sort_order: Number(formData.sort_order) || 0,
         created_at: '',
         updated_at: '',
         deleted_at: '',
@@ -151,6 +153,10 @@ const triggerUploadCategoryImage = async (categoryID: string) => {
                 <div>
                     <Label>Product Category Description</Label>
                     <Input v-model="formData.description" class="w-full" />
+                </div>
+                <div>
+                    <Label>Sort Order <span class="text-xs text-gray-400 font-normal ml-1">(Lower number = appears first in app)</span></Label>
+                    <Input v-model.number="formData.sort_order" type="number" min="0" class="w-full" placeholder="e.g. 1" />
                 </div>
                 <div class="space-y-2">
                     <Label>Category Image</Label>

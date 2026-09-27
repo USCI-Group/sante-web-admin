@@ -116,6 +116,7 @@ export interface ProductCategory {
     name: string;
     description: string;
     business_id: string;
+    sort_order?: number;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
