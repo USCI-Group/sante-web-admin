@@ -37,6 +37,18 @@ const emit = defineEmits<{
   'submit': []
 }>()
 
+
+const form = ref<any>({
+  id: '',
+  title: '',
+  description: '',
+  start_date: '',
+  end_date: '',
+  type: 'slide',
+  is_active: true,
+  image_url: '',
+})
+
 const imageFiles = ref<File[]>([])
 const errorMessages = ref({
   title: '',
@@ -44,18 +56,35 @@ const errorMessages = ref({
   image: '',
   start_date: '',
   end_date: '',
+    type: '',
+        type: '',
 })
 
 watch(
   () => props.isOpen,
   (open) => {
     if (open) {
-      errorMessages.value = {
+            errorMessages.value = {
         title: '',
         description: '',
         image: '',
         start_date: '',
-        end_date: ''
+        end_date: '',
+        type: ''
+      }
+      if (props.mode === 'edit' && props.announcement) {
+        form.value = { ...props.announcement }
+      } else {
+        form.value = {
+          id: '',
+          title: '',
+          description: '',
+          start_date: '',
+          end_date: '',
+          type: 'slide',
+          is_active: true,
+          image_url: '',
+        }
       }
     }
   }
@@ -68,6 +97,8 @@ const validateForm = () => {
     image: '',
     start_date: '',
     end_date: '',
+    type: '',
+        type: '',
   }
   let hasError = false
   if (imageFiles.value.length === 0 && props.mode === 'create') {
@@ -75,20 +106,20 @@ const validateForm = () => {
     hasError = true
   }
 
-  if (!props.announcement.start_date) {
+  if (!form.value.start_date) {
     errorMessages.value.start_date = 'Start date is required'
     hasError = true
   }
-  if (!props.announcement.end_date) {
+  if (!form.value.end_date) {
     errorMessages.value.end_date = 'End date is required'
     hasError = true
   }
 
-  if (!props.announcement.title) {
+  if (!form.value.title) {
     errorMessages.value.title = 'Title is required'
     hasError = true
   }
-  if (!props.announcement.description) {
+  if (!form.value.description) {
     errorMessages.value.description = 'Description is required'
     hasError = true
   }
@@ -104,7 +135,7 @@ const handleSubmit = async () => {
   if (props.mode === 'create') {
     await createAnnouncementFunction()
   } else {
-    await updateAnnouncementFunction(props.announcement)
+    await updateAnnouncementFunction()
   }
 
 }
@@ -113,12 +144,13 @@ const createAnnouncementFunction = async () => {
   try {
     const res = await createAnnouncement({
       business_id: props.businessId,
-      is_active: props.announcement.is_active,
-      start_date: props.announcement.start_date || '',
-      end_date: props.announcement.end_date || '',
+      is_active: form.value.is_active,
+      start_date: form.value.start_date || '',
+      end_date: form.value.end_date || '',
+      type: form.value.type || 'slide',
       file: imageFiles.value[0],
-      title: props.announcement.title,
-      description: props.announcement.description,
+      title: form.value.title,
+      description: form.value.description,
     });
 
     emit('submit')
@@ -144,16 +176,18 @@ const handleCancel = () => {
   emit('update:isOpen', false)
 }
 
-async function updateAnnouncementFunction(announcement: Announcement) {
+async function updateAnnouncementFunction() {
   try {
     const payload: any = {
-      announcement_id: announcement.id,
-      is_active: announcement.is_active,
-      start_date: announcement.start_date || '',
-      end_date: announcement.end_date || '',
-      title: announcement.title,
-      description: announcement.description,
+      announcement_id: form.value.id,
+      is_active: form.value.is_active,
+      start_date: form.value.start_date || '',
+      end_date: form.value.end_date || '',
+      type: form.value.type || 'slide',
+      title: form.value.title,
+      description: form.value.description,
     }
+    console.log("PAYLOAD BEFORE UPDATE:", payload)
 
     if (imageFiles.value.length > 0) {
       payload.file = imageFiles.value[0]
@@ -199,7 +233,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
           <div class="grid gap-2">
             <Label>Title <span class="text-red-500">*</span></Label>
             <Input
-              v-model="announcement.title"
+              v-model="form.title"
               placeholder="Enter announcement title"
               :class="{ 'border-red-500': errorMessages.title }"
             />
@@ -211,7 +245,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
           <div class="grid gap-2">
             <Label>Description <span class="text-red-500">*</span></Label>
             <textarea
-              v-model="announcement.description"
+              v-model="form.description"
               placeholder="Enter announcement description"
               class="border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black focus:border-black resize-y"
               rows="4"
@@ -225,7 +259,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
             <Label>Start Date <span class="text-red-500">*</span></Label>
             <VueDatePicker 
               :enable-time-picker="false"
-              v-model="announcement.start_date"
+              v-model="form.start_date"
             />
             <div v-if="errorMessages.start_date" class="text-sm text-red-500">{{ errorMessages.start_date }}</div>
           </div>
@@ -233,9 +267,22 @@ async function updateAnnouncementFunction(announcement: Announcement) {
             <Label>End Date <span class="text-red-500">*</span></Label>
             <VueDatePicker 
               :enable-time-picker="false"
-              v-model="announcement.end_date"
+              v-model="form.end_date"
             />
             <div v-if="errorMessages.end_date" class="text-sm text-red-500">{{ errorMessages.end_date }}</div>
+          </div>
+        </div>
+
+        <div class="grid gap-2">
+          <Label>Display Location <span class="text-red-500">*</span></Label>
+          <div class="w-full">
+            <select
+              v-model="form.type"
+              class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black focus:border-black bg-white"
+            >
+              <option value="slide">Home Screen Slide</option>
+              <option value="promotion">Promotions Page Event</option>
+            </select>
           </div>
         </div>
 
@@ -246,7 +293,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
               <input
                 type="radio"
                 class="form-radio accent-primary"
-                v-model="announcement.is_active"
+                v-model="form.is_active"
                 :value="true"
               />
               <span class="text-sm font-medium">Active</span>
@@ -255,7 +302,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
               <input
                 type="radio"
                 class="form-radio accent-primary"
-                v-model="announcement.is_active"
+                v-model="form.is_active"
                 :value="false"
               />
               <span class="text-sm font-medium">Inactive</span>
@@ -273,7 +320,7 @@ async function updateAnnouncementFunction(announcement: Announcement) {
               :multiple="true"
               :accept="'image/*'"
               :isSubmitButton="false"
-              :previewUrls="announcement.image_url"
+              :previewUrls="form.image_url"
               @selected-files="(files) => imageFiles = files"
           />
         </div>

@@ -80,6 +80,7 @@ const openOnboardingDialog = (announcement?: Announcement) => {
         announcementDialog.value.announcement = {
             is_active: true,
             business_id: businessId.value,
+            type: 'slide',
         } as Announcement;
     }
 
@@ -91,6 +92,7 @@ const getAnnouncementList = async () => {
 
     const body:any = {
         business_id: businessId.value,
+            type: 'slide',
     }
     if(search.value){
         body.search = search.value

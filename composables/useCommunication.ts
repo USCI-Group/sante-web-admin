@@ -44,6 +44,7 @@ export const useCommunication = () => {
 
     const createOnboarding = async (body: {
         business_id: string,
+        type?: string,
         title: string,
         description: string,
         is_active: boolean,
@@ -68,7 +69,8 @@ export const useCommunication = () => {
     }: {
         id: string,
         businessId: string
-        file: File,
+        file: File
+  type?: string,
     }) => {
         try {
             const formData = new FormData()
@@ -166,10 +168,12 @@ export const useCommunication = () => {
 
     const createAnnouncement = async (body: {
         business_id: string,
-        file: File,
+        file: File
+  type?: string,
         is_active: boolean,
         start_date: string,
         end_date: string,
+        type?: string,
         title: string,
         description: string,
     }) => {
@@ -178,6 +182,7 @@ export const useCommunication = () => {
             formData.append('business_id', body.business_id)
             formData.append('file', body.file)
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('start_date', new Date(body.start_date).toISOString())
             formData.append('end_date', new Date(body.end_date).toISOString())
             formData.append('title', body.title)
@@ -203,6 +208,7 @@ export const useCommunication = () => {
         is_active: boolean,
         start_date: string,
         end_date: string,
+        type?: string,
         title: string,
         description: string,
     }) => {
@@ -213,6 +219,7 @@ export const useCommunication = () => {
                 formData.append('file', body.file)
             }
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('start_date', new Date(body.start_date).toISOString())
             formData.append('end_date', new Date(body.end_date).toISOString())
             formData.append('title', body.title)
@@ -268,7 +275,8 @@ export const useCommunication = () => {
 
     const createDelivery = async (body: {
         business_id: string,
-        file: File,
+        file: File
+  type?: string,
         is_active: boolean,
         delivery_type: 'pickup' | 'delivery',
     }) => {
@@ -277,6 +285,7 @@ export const useCommunication = () => {
             formData.append('business_id', body.business_id)
             formData.append('file', body.file)
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('delivery_type', body.delivery_type)
 
             const res = await $fetch<Delivery>(`/api/admin/business/delivery/create`, {
@@ -306,6 +315,7 @@ export const useCommunication = () => {
                 formData.append('file', body.file)
             }
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('delivery_type', body.delivery_type)
 
             const res = await $fetch(`/api/admin/business/delivery/update`, {
@@ -370,6 +380,7 @@ export const useCommunication = () => {
                 formData.append('file', body.file)
             }
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('question', body.question)
             formData.append('section', body.section)
 
@@ -401,6 +412,7 @@ export const useCommunication = () => {
                 formData.append('file', body.file)
             }
             formData.append('is_active', body.is_active.toString())
+            if (body.type) formData.append('type', body.type)
             formData.append('question', body.question)
             formData.append('section', body.section)
 

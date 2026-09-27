@@ -8,7 +8,8 @@ export interface Onboarding {
 	title: string;
 	description?: string;
 	image_url?: string;
-	is_active: boolean;
+	is_active: boolean
+  type?: string;
 	sort_order: number;
 	created_at: string;
 	updated_at?: string;
@@ -21,7 +22,8 @@ export interface Announcement {
 	title: string;
 	description: string;
 	image_url?: string;
-	is_active: boolean;
+	is_active: boolean
+  type?: string;
 	sort_order: number;
 	start_date?: string;
 	end_date?: string;
@@ -36,7 +38,8 @@ export interface Delivery {
 	business?: Business;
 	image_url?: string;
 	delivery_type: string;
-	is_active: boolean;
+	is_active: boolean
+  type?: string;
 	created_at: string;
 	updated_at?: string;
 	_showDropdown?: boolean;
@@ -49,7 +52,8 @@ export interface FeedbackQuestion {
 	question: string;
 	section: string;
 	image_url?: string;
-	is_active: boolean;
+	is_active: boolean
+  type?: string;
 	sort_order: number;
 	created_at: string;
 	updated_at?: string;
