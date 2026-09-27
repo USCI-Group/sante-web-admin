@@ -57,7 +57,6 @@ const errorMessages = ref({
   start_date: '',
   end_date: '',
     type: '',
-        type: '',
 })
 
 watch(
@@ -98,7 +97,6 @@ const validateForm = () => {
     start_date: '',
     end_date: '',
     type: '',
-        type: '',
   }
   let hasError = false
   if (imageFiles.value.length === 0 && props.mode === 'create') {
@@ -282,8 +280,13 @@ async function updateAnnouncementFunction() {
             >
               <option value="slide">Home Screen Slide</option>
               <option value="promotion">Promotions Page Event</option>
+              <option value="popup">App Launch Pop-up</option>
             </select>
           </div>
+          <p v-if="form.type === 'popup'" class="text-xs text-gray-500">
+            Shows once per phone, after the app opens. If several are live, the newest shows first.
+            Use a portrait 4:5 image, e.g. 1080 × 1350.
+          </p>
         </div>
 
         <div class="grid gap-2">
