@@ -34,7 +34,7 @@ const router = useRouter()
 const route = useRoute()
 const productStore = useProductStore()
 const { getMe } = useUsers()
-const { editProductByID, uploadProductImage, getModifierOptions, getAllMenuProducts, getProductOutlets, syncProductToOutlet } = useMenu()
+const { editProductByID, uploadProductImage, getModifierOptions, getAllMenuProducts, getProductOutlets, syncProductToOutlet, uploadProductModifierOptionImage, getProductModifierOptionImages, deleteProductModifierOptionImage } = useMenu()
 const { getOutletsOptions } = useOutlets()
 const { toast } = useToast()
 const { myProfile } = useMyProfileStore()
@@ -284,7 +284,8 @@ const deleteIngredient = (ingredientID: string) => {
 onMounted(async () => {
     await getMe()
     await fetchModifiers()
-    
+    await loadProductOptionImages()
+
     const businessId = myProfile.business_id || ''
     if (businessId) {
         try {
@@ -324,6 +325,64 @@ onMounted(async () => {
         }
     }
 })
+
+// Per-product modifier option images, keyed by modifier option id. Modifier
+// groups are shared between products, so this is what makes this product's
+// combo photos differ from another product's for the same option.
+const productOptionImages = ref<Record<string, string>>({})
+
+const loadProductOptionImages = async () => {
+    const productId = route.query.id as string
+    if (!productId) return
+    try {
+        const overrides = await getProductModifierOptionImages(productId)
+        const map: Record<string, string> = {}
+        overrides.forEach((o) => { map[o.modifier_options_id] = o.image_url })
+        productOptionImages.value = map
+    } catch (err) {
+        console.error('Failed to load product modifier option images:', err)
+    }
+}
+
+const handleProductOptionImageSelected = async (option: ModifierGroupOption, files: File[]) => {
+    const productId = route.query.id as string
+    if (!productId || !option.id || !files?.length) return
+    try {
+        await uploadProductModifierOptionImage(productId, option.id, files[0])
+        await loadProductOptionImages()
+        toast({
+            title: 'Image Updated',
+            description: `Image for "${option.name}" on this product updated`,
+            variant: 'success'
+        })
+    } catch (error: any) {
+        toast({
+            title: 'Error',
+            description: error.data?.message || error.message || 'Failed to upload option image',
+            variant: 'destructive'
+        })
+    }
+}
+
+const handleClearProductOptionImage = async (option: ModifierGroupOption) => {
+    const productId = route.query.id as string
+    if (!productId || !option.id) return
+    try {
+        await deleteProductModifierOptionImage(productId, option.id)
+        await loadProductOptionImages()
+        toast({
+            title: 'Image Cleared',
+            description: `"${option.name}" now uses the modifier's default image`,
+            variant: 'success'
+        })
+    } catch (error: any) {
+        toast({
+            title: 'Error',
+            description: error.data?.message || error.message || 'Failed to clear option image',
+            variant: 'destructive'
+        })
+    }
+}
 
 const fetchModifiers = async () => {
     try {
@@ -684,6 +743,50 @@ const handleCancel = () => {
                                         v-model="modifier.max_selection"
                                         type="number"
                                         class="w-2/3 rounded-l-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- per-product images for this group's options -->
+                            <div v-if="modifier.modifier_options?.length" class="p-2.5 w-full rounded-lg border border-[#E9EAEB] space-y-2.5">
+                                <p class="text-[#535862] text-xs font-medium leading-tight">
+                                    Option images for this product
+                                    <span class="text-gray-400 font-normal">— leave empty to use the modifier's own image</span>
+                                </p>
+                                <div
+                                    v-for="option in modifier.modifier_options"
+                                    :key="option.id"
+                                    class="flex flex-row items-center gap-2.5 py-1.5 border-t border-[#F3F4F6] first:border-t-0"
+                                >
+                                    <img
+                                        v-if="productOptionImages[option.id as string] || option.image_url"
+                                        :src="productOptionImages[option.id as string] || option.image_url"
+                                        class="w-12 h-12 object-contain rounded-lg border border-[#E9EAEB] shrink-0"
+                                    />
+                                    <div v-else class="w-12 h-12 rounded-lg border border-dashed border-[#E9EAEB] flex items-center justify-center shrink-0">
+                                        <Icon icon="heroicons:photo" class="w-5 h-5 text-gray-300" />
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[#181D27] text-xs font-medium truncate">{{ option.name }}</p>
+                                        <p class="text-[10px] text-gray-400">
+                                            {{ productOptionImages[option.id as string] ? 'Custom image for this product' : 'Using modifier default' }}
+                                        </p>
+                                    </div>
+                                    <FileInput
+                                        :keyId="`product-option-image-${option.id}`"
+                                        :label="'Upload'"
+                                        :maxFiles="1"
+                                        :maxSize="1024 * 1024"
+                                        :multiple="false"
+                                        :accept="'image/*'"
+                                        :isSubmitButton="false"
+                                        @selected-files="(files: File[]) => handleProductOptionImageSelected(option, files)"
+                                    />
+                                    <Icon
+                                        v-if="productOptionImages[option.id as string]"
+                                        @click="handleClearProductOptionImage(option)"
+                                        icon="heroicons:trash"
+                                        class="w-4 h-4 text-gray-500 cursor-pointer shrink-0"
                                     />
                                 </div>
                             </div>

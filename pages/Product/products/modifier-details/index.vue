@@ -170,6 +170,19 @@ const editModifier = () => {
                         </div>
                     </div>
 
+                    <!-- option image -->
+                    <div class="w-full flex flex-row items-center justify-start py-2">
+                        <div class="w-[40%] pr-[24px] flex items-center justify-start">
+                            <span class="text-gray-600 text-sm font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                                Option Image
+                            </span>
+                        </div>
+                        <div class="w-[60%] pr-[24px] flex items-center justify-start">
+                            <img v-if="option.image_url" :src="option.image_url" class="w-16 h-16 object-contain rounded-lg border border-[#E0E0E0]" />
+                            <span v-else class="text-sm text-gray-400">No image</span>
+                        </div>
+                    </div>
+
                     <!-- status -->
                     <div class="w-full h-[38px] flex flex-row items-center justify-start">
                         <div class="w-[40%] h-[100%] pr-[24px] flex items-center justify-start">

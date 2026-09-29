@@ -90,7 +90,21 @@ export interface ModifierGroupOption {
   price_adjustment: number
   sort_order: number
   is_active?: boolean
+  /** Generic image shown for this option on every product it belongs to. */
+  image_url?: string
 	ingredient_mappings: ModifierIngredientMapping[]
+}
+
+/**
+ * Per-product image for a modifier option. Modifier groups are shared between
+ * products, so this is what lets each product show its own combo photo for an
+ * option the products have in common.
+ */
+export interface ProductModifierOptionImage {
+  id?: string
+  product_id: string
+  modifier_options_id: string
+  image_url: string
 }
 
 export interface CustomizationGroup {

@@ -23,13 +23,18 @@ import { useRouter } from 'vue-router'
 import { useProductStore } from '@/stores/ProductStore'
 import type { ModifierGroup, ModifierGroupOption } from '@/types/menu'
 import ModifierIngredientsForm from '~/components/custom/product/ModifierIngredientsForm.vue'
+import FileInput from '~/components/custom/fileinput/fileinput.vue'
 import type { Ingredient } from '@/types/menu'
 
 const { me, getMe } = useUsers()
 const modifierStore = useModifierStore()
 const router = useRouter()
 const { toast } = useToast()
-const { editModifierGroup } = useMenu()
+const { editModifierGroup, uploadModifierOptionImage } = useMenu()
+
+// Images upload after the group is saved, keyed by option id. Options that have
+// not been saved yet have no id, so their image is added on a second pass.
+const optionImageFiles = ref<Record<string, File>>({})
 
 const formData = reactive({
     ModifierGroupName: '',
@@ -69,10 +74,12 @@ const handleEditModifierGroup = async () => {
                 price_adjustment: option.price_adjustment,
                 sort_order: option.sort_order,
                 is_active: option.is_active,
+                image_url: option.image_url,
                 ingredient_mappings: option.ingredient_mappings
             }))
         }
         const response = await editModifierGroup(modifierGroup)
+        await uploadPendingOptionImages()
         toast({
             title: 'Modifier Group Updated',
             description: 'Modifier Group updated successfully',
@@ -86,6 +93,20 @@ const handleEditModifierGroup = async () => {
             variant: 'destructive'
         })
     }
+}
+
+const uploadPendingOptionImages = async () => {
+    const pending = Object.entries(optionImageFiles.value)
+    for (const [optionId, file] of pending) {
+        if (!optionId) continue
+        await uploadModifierOptionImage(optionId, file)
+    }
+    optionImageFiles.value = {}
+}
+
+const handleOptionImageSelected = (option: ModifierGroupOption, files: File[]) => {
+    if (!option.id || !files?.length) return
+    optionImageFiles.value[option.id] = files[0]
 }
 
 const handleCancel = () => {
@@ -272,9 +293,39 @@ const handleChangeIsMultipleChoice = () => {
                         </div>
                     </div>
 
+                    <!-- option image -->
+                    <div class="w-full flex flex-row items-start justify-start">
+                        <div class="w-[40%] pr-[24px] flex flex-col items-start justify-start">
+                            <span class="text-gray-600 text-sm font-medium leading-tight">
+                                Option Image
+                            </span>
+                            <span class="text-xs text-gray-400 font-normal mt-1">
+                                Shown in the app's combo picker. A product can override this with its own photo.
+                            </span>
+                        </div>
+                        <div class="w-[60%]">
+                            <FileInput
+                                v-if="option.id"
+                                :keyId="`modifier-option-image-${option.id}`"
+                                :label="'Upload Option Image'"
+                                :maxFiles="1"
+                                :maxSize="1024 * 1024"
+                                :multiple="false"
+                                :accept="'image/*'"
+                                :isSubmitButton="false"
+                                :previewUrls="option.image_url"
+                                @selected-files="(files: File[]) => handleOptionImageSelected(option, files)"
+                                :fullWidth="true"
+                            />
+                            <span v-else class="text-xs text-gray-400">
+                                Save the modifier group first, then reopen it to add an image for this option.
+                            </span>
+                        </div>
+                    </div>
+
                     <ModifierIngredientsForm :modifier_option="option" />
-                    
-                </div> 
+
+                </div>
 
                 <!-- add option button -->
                 <Button @click="handleAddVariant" class="w-full h-[38px] flex flex-row items-center justify-center bg-white text-[#D8623D] border border-[#4ADE80] text-sm font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis">

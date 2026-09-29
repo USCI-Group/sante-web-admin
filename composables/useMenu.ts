@@ -1,4 +1,4 @@
-import type { Ingredient, Menu, ModifierGroup, Product, RecipeResponse, RecipeSteps, StockReport, ModifierIngredientMapping, ModifierGroupOption, ProductWastageStats } from '@/types/menu'
+import type { Ingredient, Menu, ModifierGroup, Product, RecipeResponse, RecipeSteps, StockReport, ModifierIngredientMapping, ModifierGroupOption, ProductWastageStats, ProductModifierOptionImage } from '@/types/menu'
 import type { ProductCategory, CategoryResponse, ProductSubCategoryResponse, ProductSubCategory } from '@/types/menu'
 //import { categories } from '@vueuse/core/metadata.cjs'
 
@@ -573,6 +573,80 @@ export const useMenu = () => {
         }
     }
 
+    /** Generic image for a modifier option — used by every product that has it. */
+    const uploadModifierOptionImage = async (modifierOptionID: string, file: File) => {
+        try {
+            const formData = new FormData()
+            formData.append('id', modifierOptionID)
+            formData.append('file', file)
+
+            const res = await $fetch(`/api/modifiers/option/upload-image`, {
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
+                },
+                method: 'POST',
+                body: formData
+            })
+            return res
+        } catch (error) {
+            throw error
+        }
+    }
+
+    /** Per-product override — wins over the option's generic image in the app. */
+    const uploadProductModifierOptionImage = async (productID: string, modifierOptionID: string, file: File) => {
+        try {
+            const formData = new FormData()
+            formData.append('product_id', productID)
+            formData.append('modifier_options_id', modifierOptionID)
+            formData.append('file', file)
+
+            const res = await $fetch(`/api/modifiers/product-option/upload-image`, {
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
+                },
+                method: 'POST',
+                body: formData
+            })
+            return res
+        } catch (error) {
+            throw error
+        }
+    }
+
+    const getProductModifierOptionImages = async (productID: string) => {
+        try {
+            const response = await $fetch<{ data: ProductModifierOptionImage[] }>(`/api/modifiers/product-option-images/${productID}`, {
+                method: 'GET',
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
+                },
+            })
+            return response?.data ?? []
+        } catch (error: any) {
+            throw error
+        }
+    }
+
+    /** Clears the override so the option's generic image applies again. */
+    const deleteProductModifierOptionImage = async (productID: string, modifierOptionID: string) => {
+        try {
+            const response = await $fetch(`/api/modifiers/product-option-image/${productID}/${modifierOptionID}`, {
+                method: 'DELETE',
+                baseURL: baseUrl,
+                headers: {
+                    'Authorization': `Bearer ${token.value?.toString().trim().replace('Bearer ', '')}`,
+                },
+            })
+            return response
+        } catch (error: any) {
+            throw error
+        }
+    }
+
     const saveModifierIngredientsMappings = async (modifierIngredientMappings: ModifierIngredientMapping[]) => {
         try{
             const response = await $fetch(`/api/modifiers/assign-ingredients`, {
@@ -763,7 +837,11 @@ export const useMenu = () => {
         uploadCategoryImage,
         uploadCategoryBannerImage,
         syncProductToOutlet,
-        getProductOutlets
+        getProductOutlets,
+        uploadModifierOptionImage,
+        uploadProductModifierOptionImage,
+        getProductModifierOptionImages,
+        deleteProductModifierOptionImage
     }
 
     
