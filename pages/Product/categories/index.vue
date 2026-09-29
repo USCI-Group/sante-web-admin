@@ -11,8 +11,9 @@ import type { Meta } from '@/types/common'
 import AddCategory from '@/pages/Product/categories/add-category.vue'
 import EditCategory from '@/pages/Product/categories/edit-category.vue'
 import CustomAlertDialog from '~/components/custom/dialog/CustomAlertDialog.vue'
+import draggable from 'vuedraggable'
 
-const {getAllCategories, deleteCategoryByID} = useMenu()
+const {getAllCategories, deleteCategoryByID, editCategoryByID} = useMenu()
 const { me, getMe, checkPermission } = useUsers()
 
 const meta = ref<Meta>({
@@ -26,6 +27,12 @@ const addCategoryDialog = ref(false)
 const editCategoryDialog = ref(false)
 const deleteCategoryDialog = ref(false)
 const categoryInfo = ref<ProductCategory>({} as ProductCategory)
+
+const isReordering = ref(false)
+const isSavingOrder = ref(false)
+const selectedCategories = ref<ProductCategory[]>([])
+const bulkDeleteDialog = ref(false)
+const tableRef = ref<InstanceType<typeof DynamicTable> | null>(null)
 
 
 const { toast } = useToast()
@@ -61,7 +68,10 @@ watch(() => [meta.value.page, meta.value.page_size], async (newVal) => {
 const loadData = async () => {
     try {
         const categories: any = await getAllCategories(me.value?.business_id ?? '', meta.value.page, meta.value.page_size)
-        data.value = categories.data
+        // The endpoint returns them alphabetically; show menu order instead.
+        data.value = [...(categories.data ?? [])].sort(
+            (a: ProductCategory, b: ProductCategory) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        )
         meta.value.page = categories.meta.page
         meta.value.page_size = categories.meta.page_size
         meta.value.total = categories.meta.total
@@ -108,6 +118,70 @@ const handleDeleteCategory = async () => {
     }
 }
 
+const toggleReordering = async () => {
+    if (isReordering.value) {
+        await saveOrder()
+    }
+    isReordering.value = !isReordering.value
+}
+
+const saveOrder = async () => {
+    const changed = data.value
+        .map((category, index) => ({ category, sortOrder: index + 1 }))
+        .filter(({ category, sortOrder }) => category.sort_order !== sortOrder)
+
+    if (!changed.length) return
+
+    isSavingOrder.value = true
+    try {
+        for (const { category, sortOrder } of changed) {
+            await editCategoryByID({ ...category, sort_order: sortOrder })
+        }
+        toast({
+            title: 'Order Saved',
+            description: 'Category order updated successfully',
+            variant: 'success'
+        })
+    } catch (error: any) {
+        toast({
+            title: 'Error',
+            description: error?.data?.message || 'Failed to save category order',
+            variant: 'destructive'
+        })
+    } finally {
+        isSavingOrder.value = false
+        await loadData()
+    }
+}
+
+const handleSelectionChange = (rows: ProductCategory[]) => {
+    selectedCategories.value = rows
+}
+
+const handleBulkDelete = async () => {
+    const results = await Promise.allSettled(
+        selectedCategories.value.map((category) => deleteCategoryByID(category))
+    )
+    const failed = results.filter((r) => r.status === 'rejected').length
+
+    if (failed) {
+        toast({
+            title: 'Partially Deleted',
+            description: `${results.length - failed} of ${results.length} categories deleted. ${failed} failed.`,
+            variant: 'destructive'
+        })
+    } else {
+        toast({
+            title: 'Categories Deleted',
+            description: `${results.length} categories deleted successfully`,
+            variant: 'success'
+        })
+    }
+
+    selectedCategories.value = []
+    tableRef.value?.clearSelection()
+}
+
 const handleViewAll = () => {
     console.log('View all clicked')
 }
@@ -130,6 +204,10 @@ const handlePageSizeChange = async (newPageSize:number) => {
 }
 
 const columns: ColumnDef<ProductCategory, any>[] = [
+    {
+        header: 'Order',
+        accessorKey: 'sort_order',
+    },
     {
         header: 'Category Name',
         accessorKey: 'name',
@@ -239,6 +317,15 @@ const data = ref<ProductCategory[]>([
                     <span class="text-sm text-gray-500">View your categories and the business they represent. Easily track and manage the list for seamless organization.</span>
                 </span>
             </div>
+            <Button
+                v-if="checkPermission('create_product') && data.length > 0"
+                class="btn-primary px-3 py-2 rounded-lg"
+                :disabled="isSavingOrder"
+                @click="toggleReordering"
+            >
+                <Icon :icon="isReordering ? 'heroicons:check' : 'heroicons:arrows-up-down'" class="w-4 h-4 m-1" />
+                {{ isReordering ? (isSavingOrder ? 'Saving...' : 'Done Reordering') : 'Reorder' }}
+            </Button>
         </div>
         <!-- Content of page -->
         <div class="flex flex-col justify-start items-start">
@@ -256,10 +343,30 @@ const data = ref<ProductCategory[]>([
                 @pageChange="handlePageChange"
                 @pageSizeChange="handlePageSizeChange"
             /> -->
-            <DynamicTable 
+            <!-- Reorder mode: drag rows to set the order customers see in the app -->
+            <div v-if="isReordering" class="w-full">
+                <p class="text-sm text-gray-500 mb-4">
+                    Drag categories into the order you want them to appear in the app, then choose Done Reordering to save.
+                </p>
+                <draggable v-model="data" item-key="id" animation="200" handle=".drag-handle" class="flex flex-col gap-2">
+                    <template #item="{ element, index }">
+                        <div class="flex items-center gap-4 bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                            <Icon icon="heroicons:bars-3" class="drag-handle w-5 h-5 cursor-move text-gray-400" title="Drag to reorder" />
+                            <span class="w-6 text-sm font-semibold text-gray-500">{{ index + 1 }}</span>
+                            <img v-if="element.image_url" :src="element.image_url" class="w-10 h-10 object-contain rounded-lg" />
+                            <div v-else class="w-10 h-10 rounded-lg bg-gray-100" />
+                            <span class="font-medium">{{ element.name }}</span>
+                        </div>
+                    </template>
+                </draggable>
+            </div>
+
+            <DynamicTable
+                v-else
+                ref="tableRef"
                 class="w-full"
-                :columns="columns" 
-                :data="data" 
+                :columns="columns"
+                :data="data"
                 searchKey="name"
                 :enableSelection="true"
                 :currentPage="meta.page"
@@ -269,9 +376,19 @@ const data = ref<ProductCategory[]>([
                 @toggleFilters="handleToggleFilters"
                 @pageSizeChange="handlePageSizeChange"
                 @pageChange="handlePageChange"
+                @selectionChange="handleSelectionChange"
                 :disable-filter="true"
             >
                 <template #toolbar-buttons>
+                    <Button
+                        v-if="checkPermission('delete_product') && selectedCategories.length > 0"
+                        variant="destructive"
+                        class="px-3 py-2 rounded-lg"
+                        @click="bulkDeleteDialog = true"
+                    >
+                        <Icon icon="heroicons:trash" class="w-4 h-4 m-1" />
+                        Delete {{ selectedCategories.length }} Selected
+                    </Button>
                     <Button v-if="checkPermission('create_product')" class="btn-primary px-3 py-2 rounded-lg" @click="handleAddCategory">
                         <Icon icon="ph:plus-bold" class="w-4 h-4 m-1" />
                         Add Category
@@ -305,6 +422,21 @@ const data = ref<ProductCategory[]>([
                 await loadData()
             }"
         />
-        
+
+        <!-- Bulk Delete Dialog -->
+        <CustomAlertDialog
+            v-if="bulkDeleteDialog"
+            v-model="bulkDeleteDialog"
+            title="Delete Categories"
+            :description="`Are you sure you want to delete ${selectedCategories.length} categories? This cannot be undone.`"
+            :openDialog="bulkDeleteDialog"
+            :onOpenChange="() => bulkDeleteDialog = false"
+            :onConfirm="async () => {
+                await handleBulkDelete()
+                bulkDeleteDialog = false
+                await loadData()
+            }"
+        />
+
     </div>
 </template>

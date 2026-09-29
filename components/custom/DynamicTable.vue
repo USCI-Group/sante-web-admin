@@ -60,7 +60,7 @@ const props = defineProps<{
 }>()
 
 // Add emit for empty state button click
-const emit = defineEmits(['viewAll', 'toggleFilters', 'emptyStateAction', 'pageSizeChange', 'pageChange'])
+const emit = defineEmits(['viewAll', 'toggleFilters', 'emptyStateAction', 'pageSizeChange', 'pageChange', 'selectionChange'])
 
 // Pagination Size
 const paginationSize = [10, 20, 30, 40, 50]
@@ -146,6 +146,7 @@ const table = useVueTable({
         rowSelection.value = typeof updater === 'function'
             ? (updater as (old: Record<string, boolean>) => Record<string, boolean>)(rowSelection.value)
             : updater
+        emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -158,6 +159,14 @@ const handlePageSizeChange = (val: string) => {
     table.setPageSize(newSize)
     emit('pageSizeChange', newSize)
 }
+
+// Row selection is keyed by row index, so it survives a data reload and would
+// leave checkboxes ticked on whatever rows take the deleted ones' places.
+const clearSelection = () => {
+    table.resetRowSelection()
+}
+
+defineExpose({ clearSelection })
 
 </script>
 
