@@ -48,6 +48,7 @@ export const useMenu = () => {
                 business_id: category.business_id,
                 name: category.name,
                 description: category.description,
+                sort_order: category.sort_order,
             }
 
             const response = await $fetch<ProductCategory>(`/api/products/add-category`, {
@@ -261,6 +262,7 @@ export const useMenu = () => {
                 category_id: category.id,
                 name: category.name,
                 description: category.description,
+                sort_order: category.sort_order,
             }
             const response = await $fetch(`/api/products/update-product-category`, {
                 method: 'PUT',
