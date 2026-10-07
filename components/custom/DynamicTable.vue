@@ -77,14 +77,14 @@ const globalFilter = ref('')
 const selectionColumn: ColumnDef<any, any> = {
     id: 'select',
     header: ({ table }) => h(Checkbox, {
-        checked: table.getIsAllPageRowsSelected(),
+        modelValue: table.getIsAllPageRowsSelected(),
         indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
-        'onUpdate:checked': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
+        'onUpdate:modelValue': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
         'aria-label': 'Select all'
     }),
     cell: ({ row }) => h(Checkbox, {
-        'checked': row.getIsSelected(),
-        'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
+        modelValue: row.getIsSelected(),
+        'onUpdate:modelValue': (value: boolean) => row.toggleSelected(!!value),
         'aria-label': 'Select row',
     }),
     enableSorting: false,
