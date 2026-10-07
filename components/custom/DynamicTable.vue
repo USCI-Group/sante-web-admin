@@ -43,6 +43,7 @@ import {
     ChevronFirstIcon,
     ChevronLastIcon,
 } from 'lucide-vue-next'
+import { ref, computed, h, nextTick } from 'vue'
 
 // Define props
 const props = defineProps<{
@@ -84,7 +85,7 @@ const selectionColumn: ColumnDef<any, any> = {
     cell: ({ row }) => h(Checkbox, {
         'checked': row.getIsSelected(),
         'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
-        'ariaLabel': 'Select row',
+        'aria-label': 'Select row',
     }),
     enableSorting: false,
     enableHiding: false,
@@ -155,11 +156,9 @@ const table = useVueTable({
         rowSelection.value = typeof updater === 'function'
             ? (updater as (old: Record<string, boolean>) => Record<string, boolean>)(rowSelection.value)
             : updater
-        
-        import('vue').then(({ nextTick }) => {
-            nextTick(() => {
-                emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
-            })
+
+        nextTick(() => {
+            emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
         })
     },
     getCoreRowModel: getCoreRowModel(),
