@@ -157,9 +157,12 @@ const table = useVueTable({
             ? (updater as (old: Record<string, boolean>) => Record<string, boolean>)(rowSelection.value)
             : updater
 
-        nextTick(() => {
-            emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
-        })
+        const selectedData = Object.keys(rowSelection.value)
+            .filter(key => rowSelection.value[key])
+            .map(key => props.data[parseInt(key)])
+            .filter(row => row !== undefined);
+
+        emit('selectionChange', selectedData)
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
