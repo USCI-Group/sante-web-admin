@@ -70,6 +70,7 @@ const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
+const globalFilter = ref('')
 
 // Create selection column
 const selectionColumn: ColumnDef<any, any> = {
@@ -126,6 +127,9 @@ const table = useVueTable({
         get rowSelection() {
             return rowSelection.value
         },
+        get globalFilter() {
+            return globalFilter.value
+        }
     },
     onSortingChange: (updater: ((old: SortingState) => SortingState) | SortingState) => {
         sorting.value = typeof updater === 'function'
@@ -137,6 +141,11 @@ const table = useVueTable({
             ? (updater as (old: ColumnFiltersState) => ColumnFiltersState)(columnFilters.value)
             : updater
     },
+    onGlobalFilterChange: (updater: ((old: string) => string) | string) => {
+        globalFilter.value = typeof updater === 'function'
+            ? (updater as (old: string) => string)(globalFilter.value)
+            : updater
+    },
     onColumnVisibilityChange: (updater: ((old: VisibilityState) => VisibilityState) | VisibilityState) => {
         columnVisibility.value = typeof updater === 'function'
             ? (updater as (old: VisibilityState) => VisibilityState)(columnVisibility.value)
@@ -146,7 +155,12 @@ const table = useVueTable({
         rowSelection.value = typeof updater === 'function'
             ? (updater as (old: Record<string, boolean>) => Record<string, boolean>)(rowSelection.value)
             : updater
-        emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
+        
+        import('vue').then(({ nextTick }) => {
+            nextTick(() => {
+                emit('selectionChange', table.getSelectedRowModel().rows.map(r => r.original))
+            })
+        })
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -181,8 +195,8 @@ defineExpose({ clearSelection })
                 </span>
                 <Input 
                     placeholder="Search"
-                    :model-value="String(table.getColumn(searchKey)?.getFilterValue() ?? '')"
-                    @update:model-value="table.getColumn(searchKey)?.setFilterValue($event)"
+                    :model-value="String(table.getState().globalFilter ?? '')"
+                    @update:model-value="table.setGlobalFilter($event)"
                     class="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
                 />
             </div>
