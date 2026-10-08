@@ -69,7 +69,8 @@ const emit = defineEmits([
     'emptyStateAction', 
     'pageSizeChange', 
     'pageChange',
-    'addProduct'
+    'addProduct',
+    'selectionChange'
 ])
 
 // Pagination Size
@@ -82,7 +83,7 @@ const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
 
 // Create selection column (if want checkbox and index column, uncomment this)
-/* const selectionColumn: ColumnDef<any, any> = {
+const selectionColumn: ColumnDef<any, any> = {
     id: 'select',
     header: ({ table }) => h(Checkbox, {
         checked: table.getIsAllPageRowsSelected(),
@@ -94,6 +95,7 @@ const rowSelection = ref({})
         'checked': row.getIsSelected(),
         'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
         'ariaLabel': 'Select row',
+        'onClick': (e: Event) => e.stopPropagation()
     }),
     enableSorting: false,
     enableHiding: false,
@@ -113,9 +115,7 @@ const tableColumns = computed(() =>
     props.enableSelection
         ? [selectionColumn, indexColumn, ...props.columns]
         : [indexColumn, ...props.columns]
-) */
-
-const tableColumns = computed(() => [...props.columns])
+)
 
 // Initialize table
 const table = useVueTable({
@@ -158,6 +158,13 @@ const table = useVueTable({
         rowSelection.value = typeof updater === 'function'
             ? (updater as (old: Record<string, boolean>) => Record<string, boolean>)(rowSelection.value)
             : updater
+
+        const selectedData = Object.keys(rowSelection.value)
+            .filter(key => rowSelection.value[key])
+            .map(key => props.data[parseInt(key)])
+            .filter(row => row !== undefined);
+
+        emit('selectionChange', selectedData)
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -174,6 +181,12 @@ const handlePageSizeChange = (val: string) => {
 const handleAddProduct = () => {
     emit('addProduct')
 }
+
+const clearSelection = () => {
+    table.resetRowSelection()
+}
+
+defineExpose({ clearSelection })
 
 const sortData = (data: Menu[]) => {
     return data.sort((a: any, b: any) => {

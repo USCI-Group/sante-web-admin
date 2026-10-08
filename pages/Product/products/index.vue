@@ -12,6 +12,9 @@ import {
 import { useToast } from '~/components/ui/toast/use-toast'
 import { h, ref, onMounted, watch } from 'vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import CustomEnhancedDataTable from '~/components/custom/CustomEnhancedDataTable.vue'
 import { Icon } from '@iconify/vue'
 import type { ColumnDef } from '@tanstack/vue-table'
@@ -50,12 +53,30 @@ const openMenuIndex = ref<number | null>(null)
 const menuRef = ref<HTMLElement | null>(null)
 
 const { toast } = useToast()
-const {getAllMenuProducts, deleteProductByID, getModifierList, syncMenuToGrab, syncMenuToShopeeForAllOutlets} = useMenu()
+const {getAllMenuProducts, deleteProductByID, getModifierList, syncMenuToGrab, syncMenuToShopeeForAllOutlets, getAllCategories} = useMenu()
 const activeTab = ref('products')
+
+const selectedCategory = ref('')
+const selectedStatus = ref('')
+const categoriesList = ref<any[]>([])
+const selectedProducts = ref<Menu[]>([])
+const bulkDeleteDialog = ref(false)
+const tableRef = ref<any>(null)
+
 
 onMounted(async () => {
     await getMe()
     document.addEventListener('click', handleClickOutside)
+
+    if (me.value?.business_id) {
+        try {
+            const catResponse = await getAllCategories(me.value.business_id, 1, 1000)
+            categoriesList.value = catResponse.data ?? []
+        } catch(e) {
+            console.error(e)
+        }
+    }
+
 
     try {
         const response = await loadData().catch(error => {
@@ -79,10 +100,12 @@ onActivated(async () => {
     loadData()
 })
 
-watch(searchQuery, async (newVal) => {
+
+watch([searchQuery, selectedCategory, selectedStatus], async () => {
     currentPage.value = 1
     await loadData()
-}, { deep: true })
+})
+
 
 watch(
   () => route.query,
@@ -110,6 +133,14 @@ const loadData = async () => {
         if (searchQuery.value) {
             body.search = searchQuery.value
         }
+
+        if (selectedCategory.value) {
+            body.category_id = selectedCategory.value
+        }
+        if (selectedStatus.value) {
+            body.status = selectedStatus.value
+        }
+
         const menuProducts: any = await getAllMenuProducts(body)
         // sort data by date created oldest to newest
         //const sortedData = menuProducts.data.sort((a: Menu, b: Menu) => new Date(a.created_at as string).getTime() - new Date(b.created_at as string).getTime())
@@ -222,6 +253,39 @@ const handleDeleteProduct = async (product: Product) => {
     }
     
 }
+
+
+const handleSelectionChange = (rows: Menu[]) => {
+    selectedProducts.value = rows
+}
+
+const handleBulkDelete = async () => {
+    const results = await Promise.allSettled(
+        selectedProducts.value.map((product) => deleteProductByID(product, me.value?.business_id as string))
+    )
+    const failed = results.filter((r) => r.status === 'rejected').length
+
+    if (failed) {
+        toast({
+            title: 'Partially Deleted',
+            description: `${results.length - failed} of ${results.length} products deleted. ${failed} failed.`,
+            variant: 'destructive'
+        })
+    } else {
+        toast({
+            title: 'Products Deleted',
+            description: `Successfully deleted ${results.length} products.`,
+        })
+    }
+
+    selectedProducts.value = []
+    if (tableRef.value) {
+        tableRef.value.clearSelection()
+    }
+    bulkDeleteDialog.value = false
+    await loadData()
+}
+
 
 const handleCreateModifier = () => {
     router.push({
@@ -505,7 +569,7 @@ const modifierData = ref<ModifierGroup[]>([
                 position="left"
             >
                 <!-- <Icon name="mdi:information-outline" class="w-4 h-4 text-gray-500 cursor-help ml-1" /> -->
-                <Button v-if="checkPermission('create_product')"
+                            <Button v-if="checkPermission('create_product')"
                     class="bg-green-500 hover:bg-green-600 text-white mb-3" 
                     @click="handleSyncMenuToOnlinePlatform"
                 >
@@ -547,10 +611,48 @@ const modifierData = ref<ModifierGroup[]>([
                         />
                     </div>
 
+                    
+                    <!-- Filters -->
+                    <div class="flex items-center gap-2 ml-4">
+                        <Select v-model="selectedCategory">
+                            <SelectTrigger class="w-[180px]">
+                                <SelectValue placeholder="All Categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">All Categories</SelectItem>
+                                <SelectItem v-for="cat in categoriesList" :key="cat.id" :value="cat.id">
+                                    {{ cat.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select v-model="selectedStatus">
+                            <SelectTrigger class="w-[150px]">
+                                <SelectValue placeholder="All Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">All Status</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <!-- Toolbar Buttons -->
                     <div class="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
                         <!-- Action Buttons -->
                         <div class="flex items-center gap-2">
+                            
+                            <Button
+                                v-if="checkPermission('delete_product') && selectedProducts.length > 0"
+                                variant="destructive"
+                                class="px-3 py-2 rounded-lg"
+                                @click="bulkDeleteDialog = true"
+                            >
+                                <Icon icon="heroicons:trash" class="w-4 h-4 m-1" />
+                                Delete {{ selectedProducts.length }} Selected
+                            </Button>
+
                             <Button v-if="checkPermission('create_product')"
                                 class="btn-primary px-3 py-2 rounded-lg" 
                                 @click="handleAddProduct">
@@ -560,7 +662,7 @@ const modifierData = ref<ModifierGroup[]>([
                         </div>
                     </div>
                 </div>
-                <CustomDynamicTable
+                <CustomDynamicTable ref="tableRef" @selectionChange="handleSelectionChange"
                     v-if="activeTab === 'products'"
                     class="w-full"
                     :columns="columns" 
@@ -588,7 +690,7 @@ const modifierData = ref<ModifierGroup[]>([
                         <p class="text-sm text-gray-500 mt-2 max-w-72">
                             No items have been added yet.
                         </p>
-                        <Button v-if="checkPermission('create_product')"
+                            <Button v-if="checkPermission('create_product')"
                             class="btn-primary mt-4" 
                             @click="handleAddProduct"
                         >
@@ -643,6 +745,17 @@ const modifierData = ref<ModifierGroup[]>([
 
         </Tabs>
         
+        
+        <CustomAlertDialog 
+            v-if="bulkDeleteDialog"
+            v-model="bulkDeleteDialog"
+            title="Delete Products"
+            :description="`Are you sure you want to delete ${selectedProducts.length} products? This cannot be undone.`"
+            :openDialog="bulkDeleteDialog"
+            :onOpenChange="() => bulkDeleteDialog = false"
+            :onConfirm="handleBulkDelete"
+        />
+
         <!-- Delete Product Dialog -->
         <CustomAlertDialog 
             v-if="deleteProductDialog" 
