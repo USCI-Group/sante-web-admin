@@ -139,6 +139,12 @@ const mainMenuItems: MenuItem[] = [
         enabled: checkPermission('read_product')
       },
       {
+        title: "Free Item Promo",
+        path: "/product/free-item",
+        icon: "heroicons:ticket",
+        enabled: checkPermission('read_product')
+      },
+      {
         title: "Vouchers & Rewards",
         path: "/product/vouchers",
         icon: "heroicons:gift",
