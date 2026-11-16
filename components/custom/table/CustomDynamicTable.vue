@@ -85,16 +85,19 @@ const rowSelection = ref({})
 // Create selection column (if want checkbox and index column, uncomment this)
 const selectionColumn: ColumnDef<any, any> = {
     id: 'select',
+    // components/ui/checkbox/Checkbox.vue is driven by v-model (`modelValue` / `update:modelValue`).
+    // `checked` / `onUpdate:checked` are accepted by its props but never read or emitted, so the
+    // boxes could not be ticked and `selectionChange` never fired.
     header: ({ table }) => h(Checkbox, {
-        checked: table.getIsAllPageRowsSelected(),
+        modelValue: table.getIsAllPageRowsSelected(),
         indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
-        'onUpdate:checked': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
+        'onUpdate:modelValue': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
         'aria-label': 'Select all'
     }),
     cell: ({ row }) => h(Checkbox, {
-        'checked': row.getIsSelected(),
-        'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
-        'ariaLabel': 'Select row',
+        modelValue: row.getIsSelected(),
+        'onUpdate:modelValue': (value: boolean) => row.toggleSelected(!!value),
+        'aria-label': 'Select row',
         'onClick': (e: Event) => e.stopPropagation()
     }),
     enableSorting: false,
@@ -187,6 +190,11 @@ const clearSelection = () => {
 }
 
 defineExpose({ clearSelection })
+
+// Selection is keyed by row position. When the rows are replaced (page change, search, filter,
+// a delete) a tick would sit on a different product, while the page still holds the products
+// that were originally ticked, so "Delete N Selected" would remove rows that are not shown ticked.
+watch(() => props.data, () => clearSelection())
 
 const sortData = (data: Menu[]) => {
     return data.sort((a: any, b: any) => {

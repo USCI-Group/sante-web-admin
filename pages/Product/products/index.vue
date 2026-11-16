@@ -56,8 +56,10 @@ const { toast } = useToast()
 const {getAllMenuProducts, deleteProductByID, getModifierList, syncMenuToGrab, syncMenuToShopeeForAllOutlets, getAllCategories} = useMenu()
 const activeTab = ref('products')
 
-const selectedCategory = ref('')
-const selectedStatus = ref('')
+// A <SelectItem> may not have value="" (radix-vue throws), so "no filter" is this value instead.
+const ALL_FILTER = 'all'
+const selectedCategory = ref(ALL_FILTER)
+const selectedStatus = ref(ALL_FILTER)
 const categoriesList = ref<any[]>([])
 const selectedProducts = ref<Menu[]>([])
 const bulkDeleteDialog = ref(false)
@@ -134,10 +136,10 @@ const loadData = async () => {
             body.search = searchQuery.value
         }
 
-        if (selectedCategory.value) {
+        if (selectedCategory.value && selectedCategory.value !== ALL_FILTER) {
             body.category_id = selectedCategory.value
         }
-        if (selectedStatus.value) {
+        if (selectedStatus.value && selectedStatus.value !== ALL_FILTER) {
             body.status = selectedStatus.value
         }
 
@@ -619,7 +621,7 @@ const modifierData = ref<ModifierGroup[]>([
                                 <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Categories</SelectItem>
+                                <SelectItem :value="ALL_FILTER">All Categories</SelectItem>
                                 <SelectItem v-for="cat in categoriesList" :key="cat.id" :value="cat.id">
                                     {{ cat.name }}
                                 </SelectItem>
@@ -631,7 +633,7 @@ const modifierData = ref<ModifierGroup[]>([
                                 <SelectValue placeholder="All Status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Status</SelectItem>
+                                <SelectItem :value="ALL_FILTER">All Status</SelectItem>
                                 <SelectItem value="active">Active</SelectItem>
                                 <SelectItem value="inactive">Inactive</SelectItem>
                             </SelectContent>
